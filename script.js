@@ -328,7 +328,7 @@ const communityChampions = Object.freeze([
 ]);
 
 const championStrengths = Object.freeze([
-  { name: 'Murmurak the Steadfast', category: 'resiliency', categoryLabel: 'Resiliency', trait: 'Staying grounded during difficult days', image: './public/Mumurak.png', unlocked: true },
+  { name: 'Murmurak the Steadfast', category: 'resiliency', categoryLabel: 'Resiliency', trait: 'Staying grounded during difficult days', image: './public/Mumurak.png?v=306d1e7', unlocked: true },
   { name: 'Pebblit the Scholar', category: 'literacy', categoryLabel: 'Competency & Literacy', trait: 'Learning about IBD and asking questions' },
   { name: 'Fluffern the Consistent', category: 'habits', categoryLabel: 'Building Good Habits', trait: 'Maintaining small, achievable daily habits' },
   { name: 'Drizzlepaw the Rebounder', category: 'resiliency', categoryLabel: 'Resiliency', trait: 'Recovering after setbacks or flare-ups' },
