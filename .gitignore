@@ -1,0 +1,25 @@
+# Local reference exports and duplicate asset packs (not used by index.html)
+ChatGPT Image *.png
+Sticker.png
+Mumurak.png
+Heard Home icon.png
+HEARD Final Logo.png
+HEARD_patient.html
+HEARD_clinician.html
+HEARD_app_context.html
+heard-20-monsters-standalone-png.zip
+heard-20-monsters-standalone-png 2/
+heard-20-monsters-stickers-png/
+heard-20-monsters-stickers-png 2/
+heard-20-monsters-stickers-png.zip
+heard-20-monsters-stickers-png 2.zip
+
+# Only Venomurk from this source pack is used by the room.
+heard-20-monsters-standalone-png/*
+!heard-20-monsters-standalone-png/venomurk-the-analyst.png
+
+# Local/editor files
+.DS_Store
+node_modules/
+npm-debug.log*
+

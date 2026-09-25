@@ -1,0 +1,12 @@
+{
+  "name": "heard-ibd-companion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "start": "node scripts/dev-server.mjs",
+    "build:html": "node scripts/build-downloadable-html.mjs",
+    "check": "node --check script.js && node --check heard-structured.js && node --check scripts/dev-server.mjs && node --test tests/heard-structured.test.js"
+  }
+}

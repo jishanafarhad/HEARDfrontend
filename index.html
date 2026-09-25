@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b3768" />
+    <meta
+      name="description"
+      content="A friendly digital companion for IBD check-ins, reflection, and daily encouragement."
+    />
+    <title>HEARD · IBD Companion</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app" aria-label="HEARD IBD Companion">
+      <div class="status-bar" aria-hidden="true">
+        <time id="status-time">9:41</time>
+        <div class="device-status">
+          <span class="signal"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi">⌁</span>
+          <span class="battery"><i></i></span>
+        </div>
+      </div>
+
+      <header class="top-bar">
+        <div class="avatar avatar--user" aria-hidden="true"><span>👦🏻</span></div>
+        <div class="identity">
+          <h1>Evan</h1>
+          <p>Your IBD Companion</p>
+        </div>
+        <div class="level-card level-card--header" aria-label="Level 3, 40 of 100 XP">
+          <div class="level-row"><strong>Lv 3</strong><span class="xp-track"><i></i></span></div>
+          <small><b id="room-xp">40</b> / 100 XP</small>
+        </div>
+        <button class="menu-button" id="menu-button" type="button" aria-label="Open menu" aria-expanded="false">
+          <i></i><i></i><i></i>
+        </button>
+      </header>
+
+      <nav class="mode-switch" aria-label="Choose app mode">
+        <button class="mode-button" type="button" data-mode="chat" aria-label="Chat mode" aria-pressed="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-4.6 3.2.9-3.2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"/><circle cx="8" cy="11" r="1.2"/><circle cx="12" cy="11" r="1.2"/><circle cx="16" cy="11" r="1.2"/></svg>
+        </button>
+        <button class="mode-button" type="button" data-mode="game" aria-label="Game mode" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a4.6 4.6 0 0 1 4.4 3.2l1 3.4a3 3 0 0 1-5.2 2.8L15.4 16H8.6l-1.3 1.4a3 3 0 0 1-5.2-2.8l1-3.4A4.6 4.6 0 0 1 7.5 8Z"/><path d="M7.5 11v4M5.5 13h4M16.5 12h.01M19 14h.01"/></svg>
+        </button>
+      </nav>
+
+      <section class="room-widgets" aria-label="Companion progress">
+        <div class="bed-mumurak" aria-label="Mumurak resting on the bed">
+          <img src="./public/Mumurak.png" alt="" />
+        </div>
+        <div class="room-venomurk" aria-label="Venomurk the Analyst crawling from the bookshelf toward the bed">
+          <img src="./heard-20-monsters-standalone-png/venomurk-the-analyst.png" alt="" />
+        </div>
+        <button class="daily-card daily-card--rail" type="button" aria-label="Weekly check-ins: 2 of 3 complete">
+          <span class="weekly-copy">
+            <small id="check-in-period">WEEKLY</small>
+            <strong><b id="weekly-count">2</b><span aria-hidden="true">/</span><span id="weekly-goal">3</span></strong>
+          </span>
+          <span class="weekly-dots" aria-hidden="true">
+            <i class="is-complete">✓</i><i class="is-complete">✓</i><i></i>
+          </span>
+        </button>
+        <button class="room-destination room-destination--community" id="community-button" type="button" aria-label="Open Community">
+          <span>Community <b aria-hidden="true">›</b></span>
+        </button>
+        <button class="room-destination room-destination--learn" id="learn-button" type="button" aria-label="Open Learning Corner">
+          <span>Learning Corner <b aria-hidden="true">›</b></span>
+        </button>
+        <button class="journal-card room-destination room-destination--journal" type="button" aria-label="Open Journal">
+          <span>Journal <b aria-hidden="true">›</b></span>
+        </button>
+      </section>
+
+      <div class="view-stack">
+        <section class="view chat-view is-active" id="chat-view" aria-label="Chat with HEARD">
+          <div class="chat-resize-handle" id="chat-resize-handle" role="separator" aria-label="Resize chat history" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+            <span aria-hidden="true"></span>
+            <small>Drag for more chat</small>
+          </div>
+          <div class="messages" id="messages" role="log" aria-live="polite" aria-relevant="additions">
+            <article class="message message--companion">
+              <div class="avatar avatar--bot" aria-hidden="true"><img src="./public/Heard icon.png" alt="" /></div>
+              <div class="message-content">
+                <div class="bubble bubble--companion">
+                  <strong>HEARD</strong>
+                  <p>Hi Evan 👋 I’m HEARD, your IBD companion.<br />How are you feeling today?</p>
+                </div>
+                <time>9:12 AM</time>
+              </div>
+            </article>
+          </div>
+
+          <div class="photo-draft" id="photo-draft" hidden>
+            <img id="photo-draft-image" alt="Selected photo preview" />
+            <div><strong>Photo attached</strong><small>Add a question or note, then tap Send.</small></div>
+            <button id="photo-draft-remove" type="button" aria-label="Remove attached photo">×</button>
+          </div>
+
+          <form class="composer" id="chat-form">
+            <button class="attachment-button flare-button" id="flare-button" type="button" aria-label="Start a flare report" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4m0 1h10l-2 3 2 3H6"/></svg>
+            </button>
+            <label class="sr-only" for="message-input">Message HEARD</label>
+            <input id="message-input" name="message" type="text" maxlength="240" autocomplete="off" placeholder="Message HEARD…" />
+            <div class="attachment-actions" aria-label="Add to message">
+              <button class="attachment-button" id="photo-button" type="button" aria-label="Attach a photo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m5 17 4.5-4 3.2 2.7 2.4-2.1L19 17"/></svg>
+              </button>
+              <button class="attachment-button" id="voice-button" type="button" aria-label="Record a voice note" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/></svg>
+              </button>
+            </div>
+            <input id="photo-input" type="file" accept="image/*" hidden />
+            <button class="send-button" type="submit" aria-label="Send message">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 17-8-7.5 18-2-7.4L3 11Z"/><path d="m10.5 13.6 4.3-4.4"/></svg>
+            </button>
+          </form>
+        </section>
+
+        <section class="view game-view" id="game-view" aria-label="Game mode" aria-hidden="true">
+          <div class="structured-game" id="structured-game">
+            <div class="quest-card">
+              <div class="quest-heading">
+                <div><span class="quest-flag" aria-hidden="true">✦</span><h2>Today’s Check-in</h2></div>
+                <div class="quest-progress"><strong id="room-count">0</strong> of 4 <span id="room-checkin"></span></div>
+              </div>
+              <div class="quest-grid" aria-label="Structured game responses">
+                <button class="quest-entry" type="button" data-game-tile="wellbeing" aria-haspopup="dialog"><span class="entry-icon entry-icon--duo"><b>🔋</b><b>🌙</b></span><span><strong>Energy + Sleep</strong><small>Not entered</small></span><i></i></button>
+                <button class="quest-entry" type="button" data-game-tile="stools" aria-haspopup="dialog"><span class="entry-icon">💩</span><span><strong>Poo Parade</strong><small>Not entered</small></span><i></i></button>
+                <button class="quest-entry" type="button" data-game-tile="pain" aria-haspopup="dialog"><span class="entry-icon entry-icon--pain">⚡</span><span><strong>Pain</strong><small>Not entered</small></span><i></i></button>
+                <button class="quest-entry" type="button" data-game-tile="meds" aria-haspopup="dialog"><span class="entry-icon">💊</span><span><strong>Medicine Time</strong><small>Check adherence</small></span><i></i></button>
+              </div>
+              <p class="game-api-response" id="game-api-response" aria-live="polite">Choose an icon to add a structured response.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <button class="object-sheet-backdrop" id="object-sheet-backdrop" type="button" aria-label="Close activity" hidden></button>
+      <section class="object-sheet" id="object-sheet" aria-modal="true" role="dialog" aria-labelledby="object-sheet-title" hidden>
+        <div class="object-sheet-toolbar">
+          <span>QUICK CHECK-IN</span>
+          <button class="object-sheet-back" id="object-sheet-back" type="button" aria-label="Close activity">Close <b aria-hidden="true">×</b></button>
+        </div>
+        <div id="object-sheet-content"></div>
+      </section>
+
+      <section class="journal-overlay" id="journal-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-title" aria-hidden="true">
+        <button class="journal-backdrop" type="button" aria-label="Close IBD Journal"></button>
+        <div class="journal-shell">
+          <header class="journal-header">
+            <div>
+              <small>MY RECORD</small>
+              <h2 id="journal-title">IBD Journal</h2>
+            </div>
+            <div class="journal-header-actions">
+              <button id="journal-share" type="button">Share</button>
+              <button id="journal-close" type="button" aria-label="Close IBD Journal">×</button>
+            </div>
+          </header>
+
+          <section class="journal-month-view" id="journal-month-view">
+            <div class="journal-timeline-toolbar">
+              <div class="journal-toolbar-row">
+                <div><small>YOUR HEALTH STORY</small><strong>Scroll through each month</strong></div>
+                <button id="calendar-today" type="button">Today</button>
+              </div>
+              <div class="calendar-key" aria-label="Calendar colour key">
+                <span><i class="dot dot--green"></i>Normal</span>
+                <span><i class="dot dot--yellow"></i>Needs attention</span>
+                <span><i class="dot dot--red"></i>Urgent or flare</span>
+              </div>
+            </div>
+            <div class="calendar-months" id="calendar-months" aria-label="Journal months"></div>
+          </section>
+
+          <section class="journal-day-view" id="journal-day-view" hidden>
+            <div class="day-view-heading">
+              <button id="day-back" type="button">‹ Month</button>
+              <h3 id="day-title"></h3>
+            </div>
+            <div class="journal-page" id="day-sections" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="share-card-overlay" id="share-card-overlay" role="dialog" aria-modal="true" aria-labelledby="share-card-title" aria-hidden="true">
+        <button class="share-card-backdrop" type="button" aria-label="Close Share Card"></button>
+        <div class="share-card-shell">
+          <header><div><small>HEARD · CLINICIAN SHARE</small><h2 id="share-card-title">Monthly IBD Summary</h2></div><button id="share-card-close" type="button" aria-label="Close Share Card">×</button></header>
+          <div class="share-card-content" id="share-card-content"></div>
+          <footer>
+            <label class="approval-check"><input id="share-approval" type="checkbox" /> I have reviewed this summary and approve sharing it with my doctor.</label>
+            <button id="share-card-send" type="button" disabled>Share with my care team</button>
+          </footer>
+        </div>
+      </section>
+
+      <aside class="menu" id="menu" aria-hidden="true">
+        <button class="menu-backdrop" type="button" aria-label="Close menu"></button>
+        <div class="menu-panel">
+          <button class="menu-close" type="button" aria-label="Close menu">×</button>
+          <header class="profile-hero">
+            <div class="avatar avatar--menu" aria-hidden="true">👦🏻</div>
+            <div class="profile-hero-copy">
+              <p class="eyebrow">MY DETAILS</p>
+              <h2>IBD Champion</h2>
+              <p class="patient-summary" id="patient-summary">Evan · profile ready to complete</p>
+            </div>
+          </header>
+          <p class="profile-intro">Make this space yours. Everything is optional except your clinic ID.</p>
+
+          <form class="patient-form" id="patient-form">
+            <div class="profile-section-heading"><div><strong>About your Champion</strong><small>The basics used around the app</small></div></div>
+            <fieldset class="profile-row profile-row--paired">
+              <legend>Champion details</legend>
+              <label><span>Champion name</span><input id="patient-name" name="patientName" type="text" maxlength="60" autocomplete="name" placeholder="Evan" /></label>
+              <label><span>Age</span><input id="patient-age" name="age" type="number" min="0" max="120" inputmode="numeric" placeholder="Age" /></label>
+            </fieldset>
+
+            <fieldset class="profile-row">
+              <legend>Clinic ID</legend>
+              <input id="patient-id" name="patientId" type="text" maxlength="36" autocomplete="off" spellcheck="false" aria-describedby="patient-id-hint" placeholder="e.g. bfdb8574-0419-46a9-a701-83059efaaaf4" />
+              <small class="field-hint" id="patient-id-hint">Use the complete Champion ID supplied by the clinic.</small>
+            </fieldset>
+
+            <div class="profile-section-heading"><div><strong>Health details</strong><small>Helps HEARD give safer, more relevant support</small></div></div>
+            <fieldset class="profile-row">
+              <legend>Condition</legend>
+              <select id="patient-condition" name="condition">
+                <option value="">Prefer not to say</option>
+                <option value="UC">UC</option>
+                <option value="Crohn's">Crohn’s</option>
+                <option value="Not classified">Not classified</option>
+                <option value="Not sure">Not sure</option>
+              </select>
+              <div class="condition-details" id="condition-details" hidden>
+                <label><span>Where</span><select id="condition-location" name="conditionLocation"><option value="">Prefer not to say</option><option>Small bowel</option><option>Colon</option><option>Both</option><option>Not sure</option></select></label>
+                <label><span>Narrowing <small>Changes safety advice</small></span><select id="condition-narrowing" name="narrowing"><option value="">Prefer not to say</option><option>Yes</option><option>No</option><option>Not sure</option></select></label>
+                <label><span>Surgery</span><select id="condition-surgery" name="surgery"><option value="">Prefer not to say</option><option>None</option><option>Stoma</option><option>Pouch</option></select></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="profile-row">
+              <legend>Right now</legend>
+              <select id="patient-status" name="status"><option value="">Prefer not to say</option><option>Flaring</option><option>Settled</option><option>Not sure</option></select>
+            </fieldset>
+
+            <fieldset class="profile-row profile-parser">
+              <legend>Allergies</legend>
+              <div class="parser-line"><input id="patient-allergies" name="allergiesText" type="text" placeholder="e.g. shellfish" /><button class="review-button" id="review-allergies" type="button">Review</button></div>
+              <div class="confirm-area" id="allergy-confirmations" aria-live="polite"></div>
+            </fieldset>
+
+            <fieldset class="profile-row profile-parser">
+              <legend>Medicines</legend>
+              <div class="parser-line"><input id="patient-medicines" name="medicinesText" type="text" placeholder="Prescribed, OTC, supplements or TCM" /><button class="review-button" id="review-medicines" type="button">Review</button></div>
+              <div class="confirm-area" id="medicine-confirmations" aria-live="polite"></div>
+            </fieldset>
+
+            <div class="profile-section-heading"><div><strong>Preferences</strong><small>Choose what fits—nothing here is a rule</small></div></div>
+            <fieldset class="profile-row">
+              <legend>Diet</legend>
+              <div class="choice-grid" id="eating-patterns">
+                <label><input type="checkbox" value="Low residue" />Low residue</label><label><input type="checkbox" value="CDED" />CDED</label>
+                <label><input type="checkbox" value="EEN" />EEN</label><label><input type="checkbox" value="Formula + food" />Formula + food</label>
+                <label><input type="checkbox" value="Low FODMAP" />Low FODMAP</label><label><input type="checkbox" value="Mediterranean" />Mediterranean</label>
+                <label><input type="checkbox" value="Halal" />Halal</label><label><input type="checkbox" value="Vegetarian" />Vegetarian</label>
+                <label><input type="checkbox" value="Vegan" />Vegan</label><label><input type="checkbox" value="No beef" />No beef</label>
+                <label><input type="checkbox" value="No pork" />No pork</label>
+              </div>
+            </fieldset>
+
+            <fieldset class="profile-row">
+              <legend>Check-in goal</legend>
+              <select id="weekly-goal-input" name="checkInGoal">
+                <option value="weekly_1">Once a week</option><option value="weekly_3" selected>3× a week</option><option value="weekly_5">5× a week</option>
+                <option value="monthly_2">Twice a month</option><option value="monthly_1">Once a month</option>
+              </select>
+              <small class="field-hint">A goal, not a rule.</small>
+              <div class="goal-nudge" id="goal-nudge" hidden><span>During a flare, a more frequent check-in may help your team see changes.</span><button type="button" data-nudge="change">Change</button><button type="button" data-nudge="keep">Keep it</button></div>
+            </fieldset>
+
+            <div class="profile-section-heading"><div><strong>Caregiver access</strong><small>Add up to two trusted caregivers</small></div></div>
+            <fieldset class="profile-row caregiver-access">
+              <legend>Caregiver accounts</legend>
+              <p class="field-hint caregiver-intro">Add the people Evan trusts to help with care.</p>
+              <div class="caregiver-list" id="caregiver-list"></div>
+              <button class="add-caregiver" id="add-caregiver" type="button"><span aria-hidden="true">＋</span> Create caregiver account</button>
+              <small class="caregiver-count" id="caregiver-count">0 of 2 caregivers added</small>
+            </fieldset>
+
+            <fieldset class="profile-row visibility-row">
+              <legend>Who can see the Champion’s entries?</legend>
+              <select id="profile-visibility" name="visibility"><option value="just_me">Only the Champion</option><option value="caregiver">Champion and caregivers</option></select>
+              <small class="field-hint" id="visibility-hint"></small>
+            </fieldset>
+
+            <div class="profile-save-result" id="profile-save-result" role="status" aria-live="polite"></div>
+            <button class="save-profile" type="submit">Save Champion profile</button>
+            <small class="privacy-note">Saved securely to Evan’s Champion profile.</small>
+          </form>
+        </div>
+      </aside>
+
+      <section class="unlock-overlay" id="unlock-overlay" role="dialog" aria-modal="true" aria-label="Blind-box monster unlock" aria-hidden="true" hidden>
+        <div class="unlock-reveal" id="unlock-reveal"></div>
+        <button class="unlock-skip" id="unlock-skip" type="button" aria-label="Skip unlock animation">Skip</button>
+      </section>
+
+      <section class="destination-page" id="destination-page" role="dialog" aria-modal="true" aria-labelledby="destination-title" aria-hidden="true" hidden>
+        <header class="destination-header">
+          <button id="destination-back" type="button" aria-label="Return to the room">‹</button>
+          <div><small id="destination-kicker">EXPLORE</small><h2 id="destination-title">Learning Corner</h2></div>
+        </header>
+        <div class="destination-content" id="destination-content"></div>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+
+    <script src="./heard-capsule-reveal.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
