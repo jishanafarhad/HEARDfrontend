@@ -1,7 +1,7 @@
 # Local reference exports and duplicate asset packs (not used by index.html)
 ChatGPT Image *.png
 Sticker.png
-Mumurak.png
+/Mumurak.png
 Heard Home icon.png
 HEARD Final Logo.png
 HEARD_patient.html
@@ -22,4 +22,3 @@ heard-20-monsters-standalone-png/*
 .DS_Store
 node_modules/
 npm-debug.log*
-
