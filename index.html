@@ -132,7 +132,7 @@
                 <button class="quest-entry" type="button" data-game-tile="pain" aria-haspopup="dialog"><span class="entry-icon entry-icon--pain">⚡</span><span><strong>Pain</strong><small>Not entered</small></span><i></i></button>
                 <button class="quest-entry" type="button" data-game-tile="meds" aria-haspopup="dialog"><span class="entry-icon">💊</span><span><strong>Medicine Time</strong><small>Check adherence</small></span><i></i></button>
               </div>
-              <p class="game-api-response" id="game-api-response" aria-live="polite">Choose an icon to add a structured response.</p>
+              <p class="game-api-response sr-only" id="game-api-response" aria-live="polite">Choose an activity to add a check-in.</p>
             </div>
           </div>
         </section>
@@ -155,6 +155,12 @@
               <small>MY RECORD</small>
               <h2 id="journal-title">IBD Journal</h2>
             </div>
+            <div class="journal-header-legend" aria-label="Calendar colour key">
+              <span><i class="dot dot--green"></i>Good</span>
+              <span><i class="dot dot--yellow"></i>Monitor</span>
+              <span><i class="dot dot--red"></i>Flare</span>
+              <span><i class="appointment-diamond"></i>Appointment</span>
+            </div>
             <div class="journal-header-actions">
               <button id="journal-share" type="button">Share</button>
               <button id="journal-close" type="button" aria-label="Close IBD Journal">×</button>
@@ -167,10 +173,10 @@
                 <div><small>YOUR HEALTH STORY</small><strong>Scroll through each month</strong></div>
                 <button id="calendar-today" type="button">Today</button>
               </div>
-              <div class="calendar-key" aria-label="Calendar colour key">
-                <span><i class="dot dot--green"></i>Normal</span>
-                <span><i class="dot dot--yellow"></i>Needs attention</span>
-                <span><i class="dot dot--red"></i>Urgent or flare</span>
+              <div class="calendar-filters" aria-label="Filter calendar days">
+                <button class="is-active" type="button" data-calendar-filter="all" aria-pressed="true">All days</button>
+                <button type="button" data-calendar-filter="flare" aria-pressed="false"><i class="dot dot--red"></i>Flare days</button>
+                <button type="button" data-calendar-filter="appointment" aria-pressed="false"><i class="appointment-diamond"></i>Appointments</button>
               </div>
             </div>
             <div class="calendar-months" id="calendar-months" aria-label="Journal months"></div>
@@ -189,11 +195,12 @@
       <section class="share-card-overlay" id="share-card-overlay" role="dialog" aria-modal="true" aria-labelledby="share-card-title" aria-hidden="true">
         <button class="share-card-backdrop" type="button" aria-label="Close Share Card"></button>
         <div class="share-card-shell">
-          <header><div><small>HEARD · CLINICIAN SHARE</small><h2 id="share-card-title">Monthly IBD Summary</h2></div><button id="share-card-close" type="button" aria-label="Close Share Card">×</button></header>
+          <header><div><small>HEARD · CLINICIAN SHARE</small><h2 id="share-card-title">Four-week IBD Summary</h2></div><button id="share-card-close" type="button" aria-label="Close Share Card">×</button></header>
           <div class="share-card-content" id="share-card-content"></div>
           <footer>
-            <label class="approval-check"><input id="share-approval" type="checkbox" /> I have reviewed this summary and approve sharing it with my doctor.</label>
-            <button id="share-card-send" type="button" disabled>Share with my care team</button>
+            <label class="approval-check"><input id="share-approval" type="checkbox" /> I have reviewed this Share Card and approve sharing it with my doctor.</label>
+            <small class="share-demo-note">Demo preview: the QR code remains visible. In the released app it will appear only after approval.</small>
+            <div id="share-card-qr"></div>
           </footer>
         </div>
       </section>

@@ -37,10 +37,12 @@ let weeklyCheckIns = 2;
 let weeklyGoal = 3;
 let savedPatientId = '';
 let toastTimer;
-let mediaRecorder = null;
-let recordingStream = null;
+let speechRecognition = null;
 let recordingTimer = null;
-let audioChunks = [];
+let voiceTranscript = '';
+let voiceFinalTranscript = '';
+let voiceDraftText = '';
+let voiceRecognitionError = '';
 let flareCaptureMode = false;
 let pendingPhotoAttachment = null;
 let pendingPhotoPreviewUrl = '';
@@ -68,7 +70,6 @@ const chatResponseBy = 'HumanMessage';
 const photoUploadField = 'Image';
 const foodImageConversationText = 'Please log this food image for me';
 const flareConversationPrefix = 'I am having a flare.';
-const voiceUploadField = 'voice_note';
 const maxPhotoBytes = 10 * 1024 * 1024;
 const maxVoiceDurationMs = 60 * 1000;
 const uuidPattern = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
@@ -1254,8 +1255,8 @@ flareButton.addEventListener('click', startFlareReport);
 
 chatForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  if (mediaRecorder?.state === 'recording') {
-    showToast('Stop and send the voice note first');
+  if (speechRecognition) {
+    showToast('Stop the voice note, review the transcript, then tap Send');
     return;
   }
   const text = messageInput.value.trim();
@@ -1277,8 +1278,8 @@ chatForm.addEventListener('submit', (event) => {
 });
 
 photoButton.addEventListener('click', () => {
-  if (mediaRecorder?.state === 'recording') {
-    showToast('Stop and send the voice note first');
+  if (speechRecognition) {
+    showToast('Stop the voice note, review the transcript, then tap Send');
     return;
   }
   if (chatForm.dataset.pending === 'true' || !getSavedPatientRecord()) return;
@@ -1338,12 +1339,15 @@ photoDraftRemove.addEventListener('click', () => {
 function resetVoiceRecorder() {
   window.clearTimeout(recordingTimer);
   recordingTimer = null;
-  recordingStream?.getTracks().forEach((track) => track.stop());
-  recordingStream = null;
-  mediaRecorder = null;
+  speechRecognition = null;
   voiceButton.classList.remove('is-recording');
   voiceButton.setAttribute('aria-pressed', 'false');
   voiceButton.setAttribute('aria-label', 'Record a voice note');
+  messageInput.placeholder = flareCaptureMode
+    ? 'Describe your flare…'
+    : pendingPhotoAttachment
+      ? 'Ask about this photo or describe the meal…'
+      : 'Message HEARD…';
   const waitingForReply = chatForm.dataset.pending === 'true';
   sendButton.disabled = waitingForReply;
   photoButton.disabled = waitingForReply;
@@ -1355,6 +1359,47 @@ function showMediaError(message) {
   showToast(message);
 }
 
+function normaliseVoiceTranscript(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function finishVoiceTranscription() {
+  const transcript = normaliseVoiceTranscript(voiceTranscript);
+  const draft = normaliseVoiceTranscript(voiceDraftText);
+  const recognitionError = voiceRecognitionError;
+  resetVoiceRecorder();
+  voiceTranscript = '';
+  voiceFinalTranscript = '';
+  voiceDraftText = '';
+  voiceRecognitionError = '';
+
+  // Keep any words already recognised even if the browser reports a late
+  // network/audio error. A partial editable transcript is still useful.
+  if (!transcript && recognitionError) {
+    messageInput.value = draft;
+    const message = ['not-allowed', 'service-not-allowed'].includes(recognitionError)
+      ? 'Microphone access was unavailable. Please allow access and try again.'
+      : recognitionError === 'no-speech'
+        ? 'I could not hear any words. Please try the voice note again.'
+        : 'The voice note could not be transcribed. Please try again.';
+    showMediaError(message);
+    return;
+  }
+
+  if (!transcript) {
+    messageInput.value = draft;
+    showMediaError('I could not hear any words. Please try the voice note again.');
+    return;
+  }
+
+  // Do not send automatically. The transcript stays in the normal composer
+  // so the Champion can review or edit it before explicitly tapping Send.
+  messageInput.value = normaliseVoiceTranscript(`${draft} ${transcript}`);
+  messageInput.focus();
+  messageInput.setSelectionRange(messageInput.value.length, messageInput.value.length);
+  showToast('Transcript ready · review it, then tap Send');
+}
+
 async function startVoiceRecording() {
   if (pendingPhotoAttachment) {
     showToast('Send or remove the attached photo first');
@@ -1362,52 +1407,58 @@ async function startVoiceRecording() {
   }
   if (chatForm.dataset.pending === 'true' || !getSavedPatientRecord()) return;
 
-  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-    showMediaError('Voice recording is not supported in this browser.');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showMediaError('Voice transcription is not supported in this browser. Please use Chrome or type your entry.');
     return;
   }
 
   try {
-    recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const supportedType = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm']
-      .find((type) => MediaRecorder.isTypeSupported(type));
-    mediaRecorder = supportedType
-      ? new MediaRecorder(recordingStream, { mimeType: supportedType })
-      : new MediaRecorder(recordingStream);
-    audioChunks = [];
+    const recognition = new SpeechRecognition();
+    speechRecognition = recognition;
+    voiceTranscript = '';
+    voiceFinalTranscript = '';
+    voiceDraftText = messageInput.value;
+    voiceRecognitionError = '';
+    recognition.lang = navigator.language || 'en-SG';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
 
-    mediaRecorder.addEventListener('dataavailable', (event) => {
-      if (event.data.size) audioChunks.push(event.data);
+    recognition.addEventListener('result', (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      // Rebuild from the full result list on every event. Chrome and Safari
+      // advance resultIndex differently, so appending only the changed range
+      // can duplicate words on one platform and lose them on another.
+      for (let index = 0; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        const words = result[0]?.transcript || '';
+        if (result.isFinal) finalTranscript = normaliseVoiceTranscript(`${finalTranscript} ${words}`);
+        else interimTranscript = normaliseVoiceTranscript(`${interimTranscript} ${words}`);
+      }
+      voiceFinalTranscript = finalTranscript;
+      voiceTranscript = normaliseVoiceTranscript(`${voiceFinalTranscript} ${interimTranscript}`);
+      messageInput.value = normaliseVoiceTranscript(`${voiceDraftText} ${voiceTranscript}`);
     });
 
-    mediaRecorder.addEventListener('stop', () => {
-      const mimeType = mediaRecorder?.mimeType || audioChunks[0]?.type || 'audio/webm';
-      const extension = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('ogg') ? 'ogg' : 'webm';
-      const blob = new Blob(audioChunks, { type: mimeType });
-      resetVoiceRecorder();
+    recognition.addEventListener('error', (event) => {
+      voiceRecognitionError = event.error || 'recognition-error';
+    });
 
-      if (!blob.size) {
-        showMediaError('The voice note was empty. Please try recording again.');
-        return;
-      }
-
-      const file = new File([blob], `voice-note-${Date.now()}.${extension}`, { type: mimeType });
-      sendChatContent('', { kind: 'voice note', file, uploadField: voiceUploadField });
+    recognition.addEventListener('end', () => {
+      finishVoiceTranscription();
     }, { once: true });
 
-    mediaRecorder.addEventListener('error', () => {
-      resetVoiceRecorder();
-      showMediaError('The voice note could not be recorded. Please try again.');
-    }, { once: true });
-
-    mediaRecorder.start();
+    recognition.start();
     sendButton.disabled = true;
     photoButton.disabled = true;
     voiceButton.classList.add('is-recording');
     voiceButton.setAttribute('aria-pressed', 'true');
-    voiceButton.setAttribute('aria-label', 'Stop and send voice note');
-    showToast('Recording… tap the microphone to send');
-    recordingTimer = window.setTimeout(() => mediaRecorder?.stop(), maxVoiceDurationMs);
+    voiceButton.setAttribute('aria-label', 'Stop and transcribe voice note');
+    messageInput.placeholder = 'Listening… your words will appear here';
+    showToast('Listening… tap the microphone when you finish');
+    recordingTimer = window.setTimeout(() => speechRecognition?.stop(), maxVoiceDurationMs);
   } catch {
     resetVoiceRecorder();
     showMediaError('Microphone access was unavailable. Please allow access and try again.');
@@ -1415,8 +1466,11 @@ async function startVoiceRecording() {
 }
 
 voiceButton.addEventListener('click', () => {
-  if (mediaRecorder?.state === 'recording') {
-    mediaRecorder.stop();
+  if (speechRecognition) {
+    window.clearTimeout(recordingTimer);
+    recordingTimer = null;
+    voiceButton.setAttribute('aria-label', 'Finishing voice transcription');
+    speechRecognition.stop();
     return;
   }
   startVoiceRecording();
@@ -1504,10 +1558,12 @@ const journalMonthView = document.querySelector('#journal-month-view');
 const journalDayView = document.querySelector('#journal-day-view');
 const calendarMonths = document.querySelector('#calendar-months');
 const calendarTodayButton = document.querySelector('#calendar-today');
+const calendarFilterButtons = [...document.querySelectorAll('[data-calendar-filter]')];
 const dayTitle = document.querySelector('#day-title');
 const daySections = document.querySelector('#day-sections');
 let journalReturnFocus = null;
 let journalMonthScrollTop = 0;
+let calendarFilter = 'all';
 
 let apiJournalEntries = [];
 let journalFetchController = null;
@@ -1607,7 +1663,11 @@ function entriesForDay(dateKey) {
 }
 
 function dayStatus(entries) {
-  return highestStatus(entries.map((entry) => entry.status));
+  const healthEntries = entries.filter((entry) => entry.entry_type !== 'DOCTOR_APPOINTMENT');
+  const status = highestStatus(healthEntries.map((entry) => entry.status));
+  // A day without a concerning entry is shown as green, including days when
+  // nothing was logged. Appointments remain a separate purple marker.
+  return status === 'neutral' ? 'normal' : status;
 }
 
 function statusLabel(status) {
@@ -1619,7 +1679,7 @@ function statusCssName(status) {
 }
 
 function entryTypeIcon(type) {
-  return { REFLECT: '💬', TOILET: '●', FOOD: '🍽', DOCTOR_APPOINTMENT: '🩺' }[String(type).toUpperCase()] || '•';
+  return { REFLECT: '💬', TOILET: '●', FOOD: '🍽', DOCTOR_APPOINTMENT: '◆' }[String(type).toUpperCase()] || '•';
 }
 
 function entryTypeLabel(type) {
@@ -1669,6 +1729,7 @@ function createCalendarEntryChip(entry, dateKey) {
   chip.type = 'button';
   chip.className = `calendar-entry-chip status-${entry.status}`;
   const isDoctorAppointment = entry.entry_type === 'DOCTOR_APPOINTMENT';
+  chip.classList.toggle('is-appointment', isDoctorAppointment);
   chip.setAttribute('aria-label', isDoctorAppointment
     ? `Doctor Appointment at ${entry.time}. View appointment.`
     : `${entryTypeLabel(entry.entry_type)} at ${entry.time}, ${statusLabel(entry.status)}. View full entry.`);
@@ -1711,9 +1772,14 @@ function buildCalendarMonth(year, month, groupedEntries) {
     const dayEntries = sortDailyEntries(groupedEntries.get(dateKey) || []);
     const status = dayStatus(dayEntries);
     const cssStatus = statusCssName(status);
+    const hasAppointment = dayEntries.some((entry) => entry.entry_type === 'DOCTOR_APPOINTMENT');
     dayCell.setAttribute('aria-label', `${first.toLocaleDateString([], { month: 'long' })} ${day}, ${dayEntries.length} ${dayEntries.length === 1 ? 'entry' : 'entries'}, ${statusLabel(status)}`);
     if (dateKey === toDateKey()) dayCell.classList.add('is-today');
     if (cssStatus) dayCell.classList.add(`status-${cssStatus}`);
+    const matchesFilter = calendarFilter === 'all'
+      || (calendarFilter === 'flare' && status === 'urgent')
+      || (calendarFilter === 'appointment' && hasAppointment);
+    dayCell.classList.toggle('is-filtered-out', !matchesFilter);
 
     const dayButton = document.createElement('button'); dayButton.type = 'button'; dayButton.className = 'calendar-day-number'; dayButton.textContent = day;
     dayButton.setAttribute('aria-label', `View Daily IBD Analysis for ${dateKey}`);
@@ -1722,6 +1788,12 @@ function buildCalendarMonth(year, month, groupedEntries) {
     dayCell.addEventListener('click', (event) => {
       if (!event.target.closest('button')) openDayView(dateKey);
     });
+
+    const indicators = document.createElement('span'); indicators.className = 'calendar-indicators'; indicators.setAttribute('aria-hidden', 'true');
+    const statusDot = document.createElement('i'); statusDot.className = `dot dot--${status === 'urgent' ? 'red' : status === 'worrying' ? 'yellow' : 'green'}`;
+    indicators.append(statusDot);
+    if (hasAppointment) { const appointmentMark = document.createElement('i'); appointmentMark.className = 'appointment-diamond'; indicators.append(appointmentMark); }
+    dayCell.append(indicators);
 
     if (dayEntries.length) {
       const chips = document.createElement('div'); chips.className = 'calendar-entry-chips';
@@ -1745,14 +1817,29 @@ function renderCalendar() {
   calendarRange(entries).forEach((date) => calendarMonths.append(buildCalendarMonth(date.getFullYear(), date.getMonth(), groupedEntries)));
 }
 
-function scrollToCurrentMonth(behavior = 'smooth') {
-  const currentKey = toDateKey().slice(0, 7);
-  const currentMonth = calendarMonths.querySelector(`[data-month="${currentKey}"]`);
+function setCalendarFilter(nextFilter) {
+  calendarFilter = ['all', 'flare', 'appointment'].includes(nextFilter) ? nextFilter : 'all';
+  calendarFilterButtons.forEach((button) => {
+    const active = button.dataset.calendarFilter === calendarFilter;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  renderCalendar();
+  window.requestAnimationFrame(() => scrollToCurrentMonth('auto'));
+}
+
+function scrollToMonth(monthKey, behavior = 'smooth') {
+  const currentMonth = calendarMonths.querySelector(`[data-month="${monthKey}"]`);
   if (!currentMonth) return;
   const viewTop = journalMonthView.getBoundingClientRect().top;
   const monthTop = currentMonth.getBoundingClientRect().top;
-  const nextTop = journalMonthView.scrollTop + monthTop - viewTop - 8;
+  const toolbarHeight = journalMonthView.querySelector('.journal-timeline-toolbar')?.offsetHeight || 0;
+  const nextTop = journalMonthView.scrollTop + monthTop - viewTop - toolbarHeight - 8;
   journalMonthView.scrollTo({ top: Math.max(0, nextTop), behavior });
+}
+
+function scrollToCurrentMonth(behavior = 'smooth') {
+  scrollToMonth(toDateKey().slice(0, 7), behavior);
 }
 
 function formatEntryValue(entry) {
@@ -1908,6 +1995,7 @@ function renderDayView(dateKey) {
   const list = document.createElement('div'); list.className = 'day-entry-list';
   entries.forEach((entry) => {
     const button = document.createElement('button'); button.type = 'button'; button.className = `day-entry-card status-${entry.status}`;
+    button.classList.toggle('is-appointment', entry.entry_type === 'DOCTOR_APPOINTMENT');
     const icon = document.createElement('span'); icon.className = 'day-entry-icon'; icon.textContent = entryTypeIcon(entry.entry_type); icon.setAttribute('aria-hidden','true');
     const copy = document.createElement('span'); copy.className = 'day-entry-copy';
     const title = document.createElement('strong'); title.textContent = entryTypeLabel(entry.entry_type);
@@ -2155,6 +2243,9 @@ async function loadJournalFromApi() {
   const patientId = cleanPatientRecord(savedPatientId || patientIdInput?.value);
   if (!isValidPatientRecord(patientId)) {
     apiJournalEntries = [];
+    journalNavigation = { mode: 'calendar', dateKey: '', detailReturn: 'calendar' };
+    journalDayView.hidden = true;
+    journalMonthView.hidden = false;
     renderJournalState('Add your Champion ID', 'Enter the complete clinic Champion ID in your profile to load your health journey.', 'Open profile', () => { closeJournal(); setMenu(true); });
     return;
   }
@@ -2166,9 +2257,12 @@ async function loadJournalFromApi() {
     const rawEntries = Array.isArray(patient?.patient_entries) ? patient.patient_entries : [];
     apiJournalEntries = sortEntriesNewestFirst(rawEntries.map(normalizePatientEntry).filter((entry) => entry.id && entry.date));
     journalDetailCache.clear();
-    dailySummaryCache.clear();
     renderCalendar();
-    window.requestAnimationFrame(() => scrollToCurrentMonth('auto'));
+    if (journalNavigation.mode === 'day') {
+      renderDayView(journalNavigation.dateKey);
+    } else {
+      window.requestAnimationFrame(() => scrollToCurrentMonth('auto'));
+    }
   } catch (error) {
     if (error.name === 'AbortError') return;
     apiJournalEntries = [];
@@ -2178,11 +2272,10 @@ async function loadJournalFromApi() {
 
 function openJournal() {
   journalReturnFocus = document.activeElement;
-  journalNavigation = { mode: 'calendar', dateKey: '', detailReturn: 'calendar' };
-  journalDayView.hidden = true;
-  journalMonthView.hidden = false;
+  dailySummaryCache.clear();
   journalOverlay.classList.add('is-open');
   journalOverlay.setAttribute('aria-hidden', 'false');
+  openDayView(toDateKey());
   document.querySelector('#journal-close').focus();
   loadJournalFromApi();
 }
@@ -2212,7 +2305,7 @@ function buildShareSummary(startDate, endDate) {
 const shareCardOverlay = document.querySelector('#share-card-overlay');
 const shareCardContent = document.querySelector('#share-card-content');
 const shareApproval = document.querySelector('#share-approval');
-const shareCardSend = document.querySelector('#share-card-send');
+const shareCardQr = document.querySelector('#share-card-qr');
 let activeShareRange = null;
 const monthlySummaryRequests = new Map();
 
@@ -2300,7 +2393,14 @@ function renderMonthlySummary(host, markdown) {
   host.setAttribute('aria-busy', 'false');
   const content = document.createElement('div'); content.className = 'monthly-summary-markdown';
   renderMarkdown(content, markdown);
-  host.append(content);
+  const review = document.createElement('details'); review.className = 'share-privacy-review';
+  const reviewTitle = document.createElement('summary'); reviewTitle.textContent = 'Review or remove sensitive information';
+  const reviewBody = document.createElement('div');
+  const reviewCopy = document.createElement('p'); reviewCopy.textContent = 'Edit this copy before approving it. Remove anything you do not want included in the clinician view.';
+  const editor = document.createElement('textarea'); editor.value = markdown; editor.setAttribute('aria-label', 'Edit the information included in this Share Card');
+  editor.addEventListener('input', () => { if (activeShareRange) activeShareRange.sharedSummary = editor.value; });
+  reviewBody.append(reviewCopy, editor); review.append(reviewTitle, reviewBody);
+  host.append(content, review);
 }
 
 /**
@@ -2404,6 +2504,7 @@ async function loadMonthlyShareSummary(host, request) {
       return;
     }
     activeShareRange.aiSummary = summary;
+    activeShareRange.sharedSummary = summary;
     renderMonthlySummary(host, summary);
   } catch (error) {
     if (!shareCardOverlay.classList.contains('is-open')
@@ -2419,55 +2520,76 @@ async function loadMonthlyShareSummary(host, request) {
 function openShareCard() {
   if (shareCardOverlay.classList.contains('is-open')) return;
   const now = new Date();
+  const rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 27);
+  const startDate = toDateKey(rangeStart);
+  const endDate = toDateKey(now);
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
   const monthNumber = String(month).padStart(2, '0');
   const periodLabel = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1));
   const requestKey = `${cleanPatientRecord(savedPatientId || patientIdInput?.value)}:${year}-${monthNumber}`;
-  activeShareRange = { year, month, periodLabel, requestKey, aiSummary: '' };
+  activeShareRange = { year, month, periodLabel, requestKey, startDate, endDate, aiSummary: '', sharedSummary: '' };
   shareCardContent.replaceChildren();
 
   const period = document.createElement('section'); period.className = 'share-period';
-  const periodKicker = document.createElement('small'); periodKicker.textContent = 'MONTHLY IBD SUMMARY';
-  const periodTitle = document.createElement('h3'); periodTitle.textContent = periodLabel;
-  const periodCopy = document.createElement('p'); periodCopy.textContent = 'Patient-reported information prepared for the clinical team.';
-  period.append(periodKicker, periodTitle, periodCopy); shareCardContent.append(period);
+  const periodKicker = document.createElement('small'); periodKicker.textContent = 'LAST 4 WEEKS';
+  const periodTitle = document.createElement('h3'); periodTitle.textContent = `${rangeStart.toLocaleDateString([], { day:'numeric', month:'short' })} – ${now.toLocaleDateString([], { day:'numeric', month:'short', year:'numeric' })}`;
+  const periodCopy = document.createElement('p'); periodCopy.textContent = 'Choose any period up to four weeks for the clinician preview.';
+  const rangePicker = document.createElement('div'); rangePicker.className = 'share-range-picker';
+  const startLabel = document.createElement('label'); startLabel.textContent = 'From';
+  const startInput = document.createElement('input'); startInput.type = 'date'; startInput.value = startDate; startInput.max = endDate; startLabel.append(startInput);
+  const rangeArrow = document.createElement('span'); rangeArrow.textContent = 'to';
+  const endLabel = document.createElement('label'); endLabel.textContent = 'To';
+  const endInput = document.createElement('input'); endInput.type = 'date'; endInput.value = endDate; endInput.max = endDate; endLabel.append(endInput);
+  rangePicker.append(startLabel, rangeArrow, endLabel);
+  const rangeHelp = document.createElement('small'); rangeHelp.className = 'share-range-help'; rangeHelp.textContent = 'Maximum range: 28 days.';
+  period.append(periodKicker, periodTitle, periodCopy, rangePicker, rangeHelp); shareCardContent.append(period);
 
   const monthlySection = document.createElement('section'); monthlySection.className = 'share-section share-monthly-summary';
-  const monthlyTitle = document.createElement('h3'); monthlyTitle.textContent = 'AI Monthly Summary';
+  const monthlyTitle = document.createElement('h3'); monthlyTitle.textContent = 'AI Summary';
   const monthlyBody = document.createElement('div'); monthlyBody.className = 'monthly-summary-body'; monthlyBody.setAttribute('aria-live', 'polite');
   monthlySection.append(monthlyTitle, monthlyBody); shareCardContent.append(monthlySection);
   renderMonthlySummaryState(monthlyBody, 'loading');
 
-  shareCardContent.append(createShareQr());
-
   shareApproval.checked = false;
-  shareCardSend.disabled = true;
+  shareCardQr.replaceChildren(createShareQr());
   shareCardOverlay.classList.add('is-open');
   shareCardOverlay.setAttribute('aria-hidden', 'false');
   document.querySelector('#share-card-close').focus();
   loadMonthlyShareSummary(monthlyBody, { year, month, requestKey });
+
+  const updateRange = () => {
+    let selectedStart = new Date(`${startInput.value}T12:00:00`);
+    let selectedEnd = new Date(`${endInput.value}T12:00:00`);
+    if (Number.isNaN(selectedStart.getTime()) || Number.isNaN(selectedEnd.getTime())) return;
+    if (selectedStart > selectedEnd) selectedStart = new Date(selectedEnd);
+    const earliest = new Date(selectedEnd); earliest.setDate(earliest.getDate() - 27);
+    if (selectedStart < earliest) selectedStart = earliest;
+    startInput.value = toDateKey(selectedStart);
+    startInput.max = toDateKey(selectedEnd);
+    activeShareRange.startDate = startInput.value;
+    activeShareRange.endDate = endInput.value;
+    periodTitle.textContent = `${selectedStart.toLocaleDateString([], { day:'numeric', month:'short' })} – ${selectedEnd.toLocaleDateString([], { day:'numeric', month:'short', year:'numeric' })}`;
+    const selectedYear = selectedEnd.getFullYear();
+    const selectedMonth = selectedEnd.getMonth() + 1;
+    const selectedMonthNumber = String(selectedMonth).padStart(2, '0');
+    const selectedRequestKey = `${cleanPatientRecord(savedPatientId || patientIdInput?.value)}:${selectedYear}-${selectedMonthNumber}`;
+    activeShareRange.year = selectedYear;
+    activeShareRange.month = selectedMonth;
+    activeShareRange.requestKey = selectedRequestKey;
+    activeShareRange.periodLabel = periodTitle.textContent;
+    activeShareRange.aiSummary = '';
+    activeShareRange.sharedSummary = '';
+    loadMonthlyShareSummary(monthlyBody, { year:selectedYear, month:selectedMonth, requestKey:selectedRequestKey });
+  };
+  startInput.addEventListener('change', updateRange);
+  endInput.addEventListener('change', updateRange);
 }
 
 function closeShareCard() {
   document.querySelector('#journal-share').focus();
   shareCardOverlay.classList.remove('is-open');
   shareCardOverlay.setAttribute('aria-hidden', 'true');
-}
-
-async function shareApprovedCard() {
-  if (!shareApproval.checked || !activeShareRange) return;
-  if (!activeShareRange.aiSummary) {
-    showToast('Wait for the monthly summary to finish');
-    return;
-  }
-  const body = `Monthly IBD Summary · ${activeShareRange.periodLabel}\n\n${activeShareRange.aiSummary}`;
-  try {
-    if (navigator.share) await navigator.share({ title: 'HEARD Share Card', text: body });
-    else { await navigator.clipboard.writeText(body); showToast('Approved Share Card copied'); }
-  } catch (error) {
-    if (error.name !== 'AbortError') showToast('Could not share the card');
-  }
 }
 
 function shareJournal() { openShareCard(); }
@@ -2482,16 +2604,17 @@ document.querySelector('#day-back').addEventListener('click', () => {
     if (!dailySummaryCache.has(dateKey)) loadDailyAnalysis(dateKey);
     return;
   }
+  const returnMonth = (journalNavigation.dateKey || toDateKey()).slice(0, 7);
   journalNavigation = { mode: 'calendar', dateKey: '', detailReturn: 'calendar' };
   journalDayView.hidden = true; journalMonthView.hidden = false;
-  window.requestAnimationFrame(() => { journalMonthView.scrollTop = journalMonthScrollTop; });
+  window.requestAnimationFrame(() => scrollToMonth(returnMonth, 'auto'));
 });
-calendarTodayButton.addEventListener('click', () => scrollToCurrentMonth());
+calendarTodayButton.addEventListener('click', () => openDayView(toDateKey()));
+calendarFilterButtons.forEach((button) => button.addEventListener('click', () => setCalendarFilter(button.dataset.calendarFilter)));
 document.querySelector('#journal-share').addEventListener('click', shareJournal);
 document.querySelector('#share-card-close').addEventListener('click', closeShareCard);
 document.querySelector('.share-card-backdrop').addEventListener('click', closeShareCard);
-shareApproval.addEventListener('change', () => { shareCardSend.disabled = !shareApproval.checked; });
-shareCardSend.addEventListener('click', shareApprovedCard);
+shareApproval.addEventListener('change', () => showToast(shareApproval.checked ? 'Share Card approved for this preview' : 'Approval removed'));
 
 /* ---------- Patient profile ---------- */
 const patientForm = document.querySelector('#patient-form');
@@ -3242,7 +3365,7 @@ async function sendGamePayload(payload) {
   });
   const data=await response.json().catch(()=>null);
   if(!response.ok) throw new Error(`Game log failed (${response.status})`);
-  return { reply:sanitizeHeardResponse(data?.say || data?.ai_response || 'Saved.'), sentence };
+  return sanitizeHeardResponse(data?.say || data?.ai_response || 'Saved.');
 }
 
 function gameEntryFromPayload(payload) {
@@ -3263,9 +3386,9 @@ function gameEntryFromPayload(payload) {
 
 async function commitGameTile(tile,payload) {
   try {
-    const {reply,sentence}=await sendGamePayload(payload);
+    await sendGamePayload(payload);
     roomState[tile]=payload;roomXpValue=Math.min(500,roomXpValue+10);saveRoomState();gameEntryFromPayload(payload);closeObjectSheet();renderRoomState();
-    gameApiResponse.textContent=`Sent: “${sentence}” HEARD: ${reply}`;
+    gameApiResponse.textContent='Check-in saved.';
     renderWeeklyTracker();showToast(`${tile[0].toUpperCase()+tile.slice(1)} logged`);return true;
   } catch(error){
     gameApiResponse.textContent='This response was not sent. Please check your Champion ID or connection and try again.';
