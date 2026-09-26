@@ -1720,27 +1720,108 @@ function entriesForDay(dateKey) {
   return sortDailyEntries(journalViewEntries().filter((entry) => entry.date === dateKey));
 }
 
-function entryHasGoodComment(entry) {
-  const rawText = [entry?.value, entry?.subentries, entry?.raw]
+function entryText(entry) {
+  return [entry?.value, entry?.subentries, entry?.raw]
     .map((value) => {
       if (typeof value === 'string') return value;
       try { return JSON.stringify(value || ''); } catch { return ''; }
     })
     .join(' ')
     .replaceAll('_', ' ')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .toLowerCase();
+}
 
-  // Green is reserved for something explicitly positive that the Champion
-  // logged. A NORMAL analysis status alone does not turn the calendar green.
-  return /\b(good day|all good|feel(?:ing)? good|felt good|doing well|feel(?:ing)? well|felt well|feeling better|felt better|much better|symptoms? (?:are |were )?(?:settled|calm|improved)|pain free|no pain|no blood|slept well|sleep (?:was |quality )?good|good sleep|energy (?:is |was )?good|good energy|mood (?:is |was )?sunny)\b/i.test(rawText);
+function collectEntryFields(value, fieldNames, found = []) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectEntryFields(item, fieldNames, found));
+    return found;
+  }
+  if (!value || typeof value !== 'object') return found;
+  Object.entries(value).forEach(([key, item]) => {
+    if (fieldNames.has(key.toLowerCase()) && item !== '' && item !== null && item !== undefined) found.push(item);
+    if (item && typeof item === 'object') collectEntryFields(item, fieldNames, found);
+  });
+  return found;
+}
+
+function valuesForEntries(entries, fieldNames) {
+  const names = new Set(fieldNames.map((name) => name.toLowerCase()));
+  return entries.flatMap((entry) => collectEntryFields(entry?.raw || entry?.value, names));
+}
+
+function clinicalNumber(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const match = String(value ?? '').match(/-?\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : null;
+}
+
+function isExplicitNo(value) {
+  if (value === false || value === 0) return true;
+  return ['false', 'no', 'none', 'zero', '0', 'no blood'].includes(String(value ?? '').trim().toLowerCase().replaceAll('_', ' '));
+}
+
+function isClinicallyGoodDay(entries) {
+  const healthEntries = entries.filter((entry) => entry.entry_type !== 'DOCTOR_APPOINTMENT');
+  if (!healthEntries.length) return false;
+
+  const toiletEntries = healthEntries.filter((entry) => ['TOILET', 'STOOL_TYPE'].includes(entry.entry_type));
+  const toiletPayloadCount = toiletEntries.reduce((count, entry) => {
+    const payloads = subentryList(entry.raw);
+    return count + Math.max(1, payloads.length);
+  }, 0);
+  const loggedTripCounts = valuesForEntries(healthEntries, ['toilet_trips', 'stool_count', 'bowel_frequency'])
+    .map(clinicalNumber)
+    .filter(Number.isFinite);
+  const toiletTrips = loggedTripCounts.length ? Math.max(...loggedTripCounts) : toiletPayloadCount;
+
+  const bristolValues = valuesForEntries(toiletEntries, ['stool_type', 'bristol', 'bristol_type'])
+    .map(clinicalNumber)
+    .filter(Number.isFinite);
+  const bloodValues = valuesForEntries(toiletEntries, ['stool_blood', 'blood']);
+  const nightValues = valuesForEntries(toiletEntries, ['stool_at_night', 'woke_me_up', 'woke_to_go', 'nocturnal']);
+
+  const painEntries = healthEntries.filter((entry) => ['PAIN', 'REFLECT', 'FEELING'].includes(entry.entry_type));
+  const painValues = valuesForEntries(painEntries, ['pain_score', 'pain_faces', 'pain_level', 'pain'])
+    .map(clinicalNumber)
+    .filter(Number.isFinite);
+  painValues.push(...valuesForEntries(painEntries.filter((entry) => entry.entry_type === 'PAIN'), ['score'])
+    .map(clinicalNumber)
+    .filter(Number.isFinite));
+  painEntries.forEach((entry) => {
+    const match = entryText(entry).match(/\bpain(?:\s+score)?(?:\s+is|\s+was|\s+of|:)?\s*(10|[0-9])(?:\s*out\s+of\s+10)?\b/);
+    if (match) painValues.push(Number(match[1]));
+    if (/\bno pain\b/.test(entryText(entry))) painValues.push(0);
+  });
+
+  const medicineEntries = healthEntries.filter((entry) => ['MEDICINE', 'MEDICATION', 'REFLECT'].includes(entry.entry_type));
+  const medicineStatuses = valuesForEntries(medicineEntries, ['status', 'medication_status', 'medicine_status'])
+    .map((value) => String(value).trim().toLowerCase().replaceAll('_', ' '));
+  const medicineText = medicineEntries.map(entryText).join(' ');
+  const allMedicinesTaken = medicineStatuses.includes('taken')
+    || medicineStatuses.includes('all taken')
+    || /\b(?:yes,? all taken|took all (?:of )?my prescribed ibd medications)\b/.test(medicineText);
+  const anyMedicineMissed = medicineStatuses.some((status) => ['missed', 'not taken', 'not today'].includes(status))
+    || /\b(?:missed my|did not take my) prescribed ibd medications\b/.test(medicineText);
+
+  return toiletTrips >= 1
+    && toiletTrips <= 3
+    && bristolValues.length >= toiletTrips
+    && bristolValues.every((value) => value === 3 || value === 4)
+    && bloodValues.length >= toiletTrips
+    && bloodValues.every(isExplicitNo)
+    && nightValues.length >= toiletTrips
+    && nightValues.every(isExplicitNo)
+    && painValues.length > 0
+    && Math.max(...painValues) <= 1
+    && allMedicinesTaken
+    && !anyMedicineMissed;
 }
 
 function dayStatus(entries) {
   const healthEntries = entries.filter((entry) => entry.entry_type !== 'DOCTOR_APPOINTMENT');
   const status = highestStatus(healthEntries.map((entry) => entry.status));
   if (status === 'urgent' || status === 'worrying') return status;
-  if (healthEntries.some(entryHasGoodComment)) return 'good';
+  if (isClinicallyGoodDay(healthEntries)) return 'good';
   return 'neutral';
 }
 
