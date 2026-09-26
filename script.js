@@ -470,7 +470,7 @@ function renderCommunityHome() {
     <section class="community-hero">
       <img class="community-hero-icon" src="./public/Community Icon.png" alt="" />
       <div><small>EVAN’S COLLECTION</small><h3>Champion’s Strengths</h3><p>Meet the strength pets you’ve unlocked along your journey.</p></div>
-      <button class="strengths-open" id="strengths-open" type="button"><span>View collection <small>+2 XP</small></span><b aria-hidden="true">›</b></button>
+      <button class="strengths-open" id="strengths-open" type="button"><span>View collection</span><b aria-hidden="true">›</b></button>
     </section>
 
     <section class="community-section" aria-labelledby="champion-search-title">
@@ -527,8 +527,8 @@ function renderChampionStrengths() {
          <img src="${pet.image}" alt="${pet.name}" />
          <div><strong>${pet.name}</strong><small>${pet.categoryLabel}</small></div>
        </article>`
-    : `<div class="monster-box monster-box--locked monster-box--${pet.category}" aria-label="Locked pet: ${pet.name}. ${pet.categoryLabel}">
-         <span>?</span><strong>${pet.name}</strong><small>${pet.categoryLabel}</small>
+    : `<div class="monster-box monster-box--locked" aria-label="Locked blind-box pet">
+         <span>?</span><strong>Mystery pet</strong><small>Blind box</small>
        </div>`).join('');
   destinationKicker.textContent = 'CHAMPION’S STRENGTHS';
   destinationTitle.textContent = 'Pet Collection';
@@ -714,7 +714,6 @@ destinationContent.addEventListener('click', (event) => {
     return;
   }
   if (event.target.closest('#strengths-open')) {
-    awardParticipationXp('community:strengths', 2, 'Strength collection explored');
     renderChampionStrengths();
     destinationContent.scrollTop = 0;
     return;
