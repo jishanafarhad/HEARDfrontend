@@ -3110,9 +3110,11 @@ function renderRoomState() {
   gameTiles.forEach((button) => {
     const tile = button.dataset.gameTile;
     const payload = roomTilePayload(tile);
+    const label = button.querySelector('strong')?.textContent || 'Check-in';
+    const summary = gameTileSummary(tile, payload);
     button.classList.toggle('is-complete', Boolean(payload));
     button.setAttribute('aria-pressed', String(Boolean(payload)));
-    button.querySelector('small').textContent = gameTileSummary(tile, payload);
+    button.setAttribute('aria-label', `${label}: ${summary}`);
     button.querySelector('i').textContent = payload ? '✓' : '';
   });
 }
@@ -3265,40 +3267,57 @@ function openSleepSheet() {
   objectSheetContent.insertBefore(counter, confirm); objectSheetContent.insertBefore(pillow, confirm); objectSheetContent.insertBefore(qualitySet, confirm); objectSheetContent.append(slept);
 }
 
-function configuredDoses() {
-  const medicines = cachedProfile().medicines || [];
-  const names = medicines.filter((item) => item.confirmed !== false).map((item) => item.label).slice(0,2);
-  return [{slot:'morning',name:names[0] || 'Tummy Shield'},{slot:'evening',name:names[1] || names[0] || 'Tummy Shield'}];
-}
-
 function openMedsSheet() {
-  sheetHeading('Medicine Time', 'For each scheduled time, choose Taken, Missed, or Not yet.');
-  const answers = new Map(); const list = document.createElement('div'); list.className='med-adherence-list';
-  const activeAnswers = () => [...answers.values()].filter((dose) => dose.status === 'taken' || dose.status === 'missed');
-  const confirm = confirmGameButton('Save medicine check-in ⭐ +10', () => activeAnswers().length ? {tile:'meds',doses:[...answers.values()]} : null);
-  const updateConfirm = () => { confirm.disabled = activeAnswers().length === 0; };
-  configuredDoses().forEach((dose)=>{
-    const card=document.createElement('section'); card.className='med-adherence-card';
-    const heading=document.createElement('div'); heading.className='med-adherence-heading';
-    const name=document.createElement('strong'); name.textContent=`💊 ${dose.name}`;
-    const slot=document.createElement('span'); slot.textContent=dose.slot; heading.append(name,slot);
-    const statusChoices=document.createElement('div'); statusChoices.className='choice-set med-status-set';
-    const reasonWrap=document.createElement('div'); reasonWrap.className='med-reason-wrap'; reasonWrap.hidden=true;
-    const reasons=document.createElement('div'); reasons.className='choice-set med-reason-set';
-    const answer={...dose,status:'not_logged',reason:null}; answers.set(dose.slot,answer);
-    [['Taken','taken'],['Missed','missed'],['Not yet','not_logged']].forEach(([label,value])=>{
-      statusChoices.append(choiceButton(label,value,statusChoices,(chosen)=>{
-        answer.status=chosen; if(chosen!=='missed') answer.reason=null;
-        reasonWrap.hidden=chosen!=='missed'; updateConfirm();
-      }));
-    });
-    const reasonTitle=document.createElement('small'); reasonTitle.textContent='What got in the way? (optional)';
-    [['Forgot','forgot'],['Felt sick after','felt_sick_after'],['Ran out','ran_out'],['Felt well','felt_well'],['Other','other']].forEach(([label,value])=>{
-      reasons.append(choiceButton(label,value,reasons,(chosen)=>{answer.reason=chosen;}));
-    });
-    reasonWrap.append(reasonTitle,reasons); card.append(heading,statusChoices,reasonWrap); list.append(card);
+  sheetHeading('Daily Pill Drop 💊', 'A quick check-in about today’s prescribed IBD medications.');
+  const status = document.createElement('p'); status.className = 'medicine-save-state'; status.setAttribute('role', 'status');
+  const question = document.createElement('section'); question.className = 'sheet-question medicine-primary-question';
+  const title = document.createElement('h3'); title.textContent = 'Did you take your prescribed IBD medications today?';
+  const choices = document.createElement('div'); choices.className = 'medicine-primary-actions';
+  const yes = document.createElement('button'); yes.type = 'button'; yes.className = 'medicine-primary-button medicine-primary-button--yes'; yes.textContent = 'YES, ALL TAKEN 👍';
+  const no = document.createElement('button'); no.type = 'button'; no.className = 'medicine-primary-button medicine-primary-button--no'; no.textContent = 'NOT TODAY 🛑';
+  choices.append(yes, no); question.append(title, choices);
+
+  const reasonSection = document.createElement('section'); reasonSection.className = 'sheet-question medicine-reasons'; reasonSection.hidden = true;
+  const reasonTitle = document.createElement('h3'); reasonTitle.textContent = 'Understood. Health shifts happen. What got in the way today?';
+  const reasons = document.createElement('div'); reasons.className = 'medicine-reason-list';
+  const reasonOptions = [
+    ['Forgot my morning alarm', 'forgot'],
+    ['Feeling completely fine or healthy today', 'felt_well'],
+    ['Worried about side effects', 'side_effects'],
+    ['Prescription ran out or waiting on pharmacy', 'ran_out'],
+    ['Difficulty swallowing or nausea', 'swallowing_or_nausea']
+  ];
+
+  const setBusy = (busy, activeButton) => {
+    [...choices.querySelectorAll('button'), ...reasons.querySelectorAll('button')].forEach((button) => { button.disabled = busy; });
+    if (busy && activeButton) activeButton.textContent = 'Saving…';
+  };
+  const submitMedicine = async (medicineStatus, reason, activeButton) => {
+    const originalLabel = activeButton.textContent;
+    setBusy(true, activeButton);
+    status.textContent = 'Saving your medicine check-in…';
+    const dose = { slot:'daily', name:'prescribed IBD medications', status:medicineStatus, reason };
+    const success = await commitGameTile('meds', { tile:'meds', status:medicineStatus, reason, doses:[dose] });
+    if (!success) {
+      activeButton.textContent = originalLabel;
+      setBusy(false);
+      status.textContent = 'This check-in was not saved. Please try again.';
+    }
+  };
+
+  yes.addEventListener('click', () => submitMedicine('taken', null, yes));
+  no.addEventListener('click', () => {
+    no.classList.add('is-selected');
+    reasonSection.hidden = false;
+    reasonSection.scrollIntoView({ behavior:'smooth', block:'nearest' });
   });
-  objectSheetContent.insertBefore(list,confirm);
+  reasonOptions.forEach(([label, value]) => {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'medicine-reason-button'; button.textContent = label;
+    button.addEventListener('click', () => submitMedicine('missed', value, button));
+    reasons.append(button);
+  });
+  reasonSection.append(reasonTitle, reasons);
+  objectSheetContent.append(question, reasonSection, status);
 }
 
 function openPainSheet() {
@@ -3312,10 +3331,11 @@ function openPainSheet() {
   const confirm=confirmGameButton('Save response ⭐ +10',()=>score!==null?{tile:'pain',score,scale:'fps_r',locations:[...locations],timing:[...timing]}:null);
   [['No hurt',0],['Hurts a little',2],['Hurts a bit more',4],['Hurts even more',6],['Hurts a lot',8],['Hurts worst',10]].forEach(([label,value],index)=>{
     const button=choiceButton(label,String(value),faces,(chosen)=>{score=Number(chosen);confirm.disabled=false;});
-    button.classList.add('pain-face-choice'); button.setAttribute('aria-label',label); button.innerHTML=painFaceSvg(index); faces.append(button);
+    button.classList.add('pain-face-choice'); button.setAttribute('aria-label',`${label}: pain score ${value}`);
+    button.innerHTML=`${painFaceSvg(index)}<span class="pain-score-value">${value}</span>`; faces.append(button);
   });
   const faceSection=document.createElement('section');faceSection.className='sheet-question';
-  const faceTitle=document.createElement('h3');faceTitle.textContent='Which face feels most like your pain?';faceSection.append(faceTitle,faces);
+  const faceTitle=document.createElement('h3');faceTitle.textContent='Choose your pain score';faceSection.append(faceTitle,faces);
   const chips=document.createElement('div');chips.className='toggle-chips';['after eating','before poo','better after poo','woke me','at school','all day'].forEach((item)=>chips.append(toggleButton(item,item,timing)));
   const timingSection=document.createElement('section');timingSection.className='sheet-question sheet-question--optional';
   const timingTitle=document.createElement('h3');timingTitle.textContent='When does it happen?';timingSection.append(timingTitle,chips);
@@ -3375,13 +3395,15 @@ function gamePayloadSentence(payload) {
     return `${waking}${payload.sleep ? `, and my sleep quality was ${payload.sleep}` : ''}.`;
   }
   if (payload.tile === 'meds') {
-    const reasonPhrases = { forgot:' because I forgot', felt_sick_after:' because I felt sick after it', ran_out:' because I ran out', felt_well:' because I felt well', other:'' };
-    return payload.doses
-      .filter((dose) => dose.status === 'taken' || dose.status === 'missed')
-      .map((dose) => dose.status === 'taken'
-        ? `I took my ${dose.name} ${dose.slot} medicine.`
-        : `I missed my ${dose.name} ${dose.slot} medicine${reasonPhrases[dose.reason] || ''}.`)
-      .join(' ');
+    if (payload.status === 'taken') return 'I took all of my prescribed IBD medications today.';
+    const reasonPhrases = {
+      forgot:' because I forgot my morning alarm',
+      felt_well:' because I was feeling completely fine or healthy',
+      side_effects:' because I was worried about side effects',
+      ran_out:' because my prescription ran out or I am waiting on the pharmacy',
+      swallowing_or_nausea:' because I had difficulty swallowing or nausea'
+    };
+    return `I did not take my prescribed IBD medications today${reasonPhrases[payload.reason] || ''}.`;
   }
   if (payload.tile === 'pain') {
     const location = payload.locations.length ? ` The pain is in my ${payload.locations.join(' and ')}.` : '';
