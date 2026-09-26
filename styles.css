@@ -460,6 +460,33 @@ button { -webkit-tap-highlight-color: transparent; }
 .calendar-day.status-monitor { border-color:#dfbc5d; background:linear-gradient(145deg,#fff9e6,#ffefbd); }
 .calendar-day.status-red { color:#672126; border-color:#cf5962; background:linear-gradient(145deg,rgba(222,66,73,.19),rgba(190,43,54,.13)); }
 .calendar-day.is-filtered-out { visibility:hidden; pointer-events:none; }
+.calendar-filter-results { padding:.4cqw 0 2cqw; }
+.calendar-filter-results-heading { margin-bottom:1.5cqw; padding:2cqw 2.2cqw; border:2px solid #b79259; border-radius:18px; background:linear-gradient(145deg,rgba(255,252,235,.96),rgba(248,237,203,.94)); box-shadow:0 5px 0 #9a7544; }
+.calendar-filter-results-heading h3 { margin:0; color:#173d68; font-size:clamp(21px,3.3cqw,31px); line-height:1.05; }
+.calendar-filter-results-heading p { margin:.6cqw 0 0; color:#5a6d7b; font-size:clamp(11px,1.5cqw,14px); }
+.calendar-filter-list { display:grid; gap:1.6cqw; }
+.calendar-filter-day { overflow:hidden; border:2px solid #ce6670; border-radius:17px; background:#fff9ef; box-shadow:0 5px 0 #a9535c,0 10px 20px rgba(91,50,35,.1); }
+.calendar-filter-day--appointment { border-color:#9872ca; box-shadow:0 5px 0 #73529f,0 10px 20px rgba(67,42,98,.1); }
+.calendar-filter-date { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:1.4cqw; width:100%; padding:1.7cqw 2cqw; color:#672126; border:0; border-bottom:1px solid rgba(190,43,54,.18); background:linear-gradient(135deg,#ffe7df,#fbd4d6); cursor:pointer; text-align:left; }
+.calendar-filter-day--appointment .calendar-filter-date { color:#57337f; border-bottom-color:rgba(93,55,139,.18); background:linear-gradient(135deg,#f5ecff,#e9dcf8); }
+.calendar-filter-date .dot { width:1.8cqw; min-width:11px; }
+.calendar-filter-date .appointment-diamond { width:1.65cqw; min-width:10px; }
+.calendar-filter-date span { min-width:0; }
+.calendar-filter-date strong,.calendar-filter-date small { display:block; }
+.calendar-filter-date strong { font-size:clamp(15px,2.35cqw,21px); line-height:1.15; }
+.calendar-filter-date small { margin-top:.35cqw; color:#7d5960; font-size:clamp(10px,1.35cqw,13px); font-weight:800; }
+.calendar-filter-day--appointment .calendar-filter-date small { color:#725d89; }
+.calendar-filter-date b { font-size:clamp(24px,3.5cqw,32px); line-height:1; }
+.calendar-filter-entry-list { display:grid; gap:.8cqw; padding:1.2cqw; }
+.calendar-filter-entry { display:grid; grid-template-columns:auto 1fr; align-items:start; gap:1.2cqw; width:100%; padding:1.2cqw 1.4cqw; color:#26485f; border:1px solid #dfb8aa; border-radius:12px; background:rgba(255,255,255,.76); cursor:pointer; text-align:left; }
+.calendar-filter-day--appointment .calendar-filter-entry { border-color:#cbb5e2; }
+.calendar-filter-entry > span:first-child { font-size:clamp(16px,2.5cqw,22px); line-height:1.15; }
+.calendar-filter-entry strong,.calendar-filter-entry small { display:block; }
+.calendar-filter-entry strong { color:#173f68; font-size:clamp(12px,1.75cqw,16px); }
+.calendar-filter-entry small { margin-top:.25cqw; color:#5d7180; font-size:clamp(10px,1.4cqw,13px); line-height:1.35; }
+.calendar-filter-empty { display:grid; justify-items:center; gap:.6cqw; padding:6cqw 3cqw; color:#526b78; border:2px dashed #b9aa84; border-radius:18px; background:rgba(255,252,235,.75); text-align:center; }
+.calendar-filter-empty > span { color:#c91f2f; font-size:clamp(26px,5cqw,42px); }.calendar-filter-results--appointment .calendar-filter-empty > span { color:#7950ad; }
+.calendar-filter-empty strong { color:#173f68; font-size:clamp(15px,2.2cqw,20px); }.calendar-filter-empty p { margin:0; font-size:clamp(11px,1.45cqw,13px); }
 .calendar-day-number { align-self:center; padding:0 .2cqw; color:inherit; border:0; background:transparent; cursor:default; font-size:clamp(10px,1.55cqw,15px); line-height:1.1; }
 button.calendar-day-number { cursor:pointer; font-weight:900; }
 .calendar-entry-chips { display:grid; gap:.3cqw; min-width:0; margin-top:.4cqw; }

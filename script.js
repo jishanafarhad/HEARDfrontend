@@ -2029,10 +2029,107 @@ function buildCalendarMonth(year, month, groupedEntries) {
   return section;
 }
 
+function buildCalendarFilterList(groupedEntries) {
+  const isAppointmentFilter = calendarFilter === 'appointment';
+  const todayKey = toDateKey();
+  const matches = [...groupedEntries.entries()]
+    .map(([dateKey, entries]) => ({ dateKey, entries: sortDailyEntries(entries) }))
+    .filter(({ entries }) => isAppointmentFilter
+      ? entries.some((entry) => entry.entry_type === 'DOCTOR_APPOINTMENT')
+      : dayStatus(entries) === 'urgent')
+    .sort((a, b) => {
+      if (!isAppointmentFilter) return b.dateKey.localeCompare(a.dateKey);
+      const aUpcoming = a.dateKey >= todayKey;
+      const bUpcoming = b.dateKey >= todayKey;
+      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
+      return aUpcoming ? a.dateKey.localeCompare(b.dateKey) : b.dateKey.localeCompare(a.dateKey);
+    });
+
+  const section = document.createElement('section');
+  section.className = `calendar-filter-results calendar-filter-results--${calendarFilter}`;
+  const heading = document.createElement('header');
+  heading.className = 'calendar-filter-results-heading';
+  const title = document.createElement('h3');
+  title.textContent = isAppointmentFilter ? 'Doctor appointments' : 'Flare days';
+  const count = document.createElement('p');
+  count.textContent = matches.length
+    ? `${matches.length} ${matches.length === 1 ? 'date' : 'dates'} found · ${isAppointmentFilter ? 'upcoming first' : 'newest first'}`
+    : `No ${isAppointmentFilter ? 'appointments' : 'flare days'} found.`;
+  heading.append(title, count);
+  section.append(heading);
+
+  if (!matches.length) {
+    const empty = document.createElement('div');
+    empty.className = 'calendar-filter-empty';
+    empty.innerHTML = `<span aria-hidden="true">${isAppointmentFilter ? '🩺' : '●'}</span><strong>Nothing to show here yet</strong><p>Choose another filter or return to All days.</p>`;
+    section.append(empty);
+    return section;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'calendar-filter-list';
+  matches.forEach(({ dateKey, entries }) => {
+    const relevantEntries = isAppointmentFilter
+      ? entries.filter((entry) => entry.entry_type === 'DOCTOR_APPOINTMENT')
+      : entries.filter((entry) => entry.status === 'urgent');
+    const date = new Date(`${dateKey}T12:00:00`);
+    const card = document.createElement('article');
+    card.className = `calendar-filter-day calendar-filter-day--${calendarFilter}`;
+
+    const dateButton = document.createElement('button');
+    dateButton.type = 'button';
+    dateButton.className = 'calendar-filter-date';
+    dateButton.setAttribute('aria-label', `Open journal entries for ${dateKey}`);
+    const marker = document.createElement('i');
+    marker.className = isAppointmentFilter ? 'appointment-diamond' : 'dot dot--red';
+    marker.setAttribute('aria-hidden', 'true');
+    const dateCopy = document.createElement('span');
+    const dateTitle = document.createElement('strong');
+    dateTitle.textContent = date.toLocaleDateString([], { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+    const dateMeta = document.createElement('small');
+    dateMeta.textContent = isAppointmentFilter
+      ? `${relevantEntries.length} ${relevantEntries.length === 1 ? 'appointment' : 'appointments'}`
+      : `${relevantEntries.length} urgent ${relevantEntries.length === 1 ? 'entry' : 'entries'} · ${entries.length} total`;
+    dateCopy.append(dateTitle, dateMeta);
+    const arrow = document.createElement('b'); arrow.textContent = '›'; arrow.setAttribute('aria-hidden', 'true');
+    dateButton.append(marker, dateCopy, arrow);
+    dateButton.addEventListener('click', () => openDayView(dateKey));
+    card.append(dateButton);
+
+    const entryList = document.createElement('div');
+    entryList.className = 'calendar-filter-entry-list';
+    relevantEntries.forEach((entry) => {
+      const entryButton = document.createElement('button');
+      entryButton.type = 'button';
+      entryButton.className = 'calendar-filter-entry';
+      const icon = document.createElement('span'); icon.textContent = entryTypeIcon(entry.entry_type); icon.setAttribute('aria-hidden', 'true');
+      const copy = document.createElement('span');
+      const entryHeading = document.createElement('strong');
+      entryHeading.textContent = isAppointmentFilter ? entry.time : entryTypeLabel(entry.entry_type);
+      const detail = document.createElement('small');
+      detail.textContent = isAppointmentFilter
+        ? entry.value?.reason_and_location_of_visit || 'Doctor appointment'
+        : `${entry.time} · ${formatEntryValue(entry)}`;
+      copy.append(entryHeading, detail);
+      entryButton.append(icon, copy);
+      entryButton.addEventListener('click', () => openEntryDetail(entry.id, dateKey, 'calendar'));
+      entryList.append(entryButton);
+    });
+    card.append(entryList);
+    list.append(card);
+  });
+  section.append(list);
+  return section;
+}
+
 function renderCalendar() {
   calendarMonths.replaceChildren();
   const entries = journalViewEntries();
   const groupedEntries = groupEntriesByDate(entries);
+  if (calendarFilter !== 'all') {
+    calendarMonths.append(buildCalendarFilterList(groupedEntries));
+    return;
+  }
   calendarRange(entries).forEach((date) => calendarMonths.append(buildCalendarMonth(date.getFullYear(), date.getMonth(), groupedEntries)));
 }
 
@@ -2044,7 +2141,10 @@ function setCalendarFilter(nextFilter) {
     button.setAttribute('aria-pressed', String(active));
   });
   renderCalendar();
-  window.requestAnimationFrame(() => scrollToCurrentMonth('auto'));
+  window.requestAnimationFrame(() => {
+    if (calendarFilter === 'all') scrollToCurrentMonth('auto');
+    else journalMonthView.scrollTo({ top:0, behavior:'auto' });
+  });
 }
 
 function scrollToMonth(monthKey, behavior = 'smooth') {
