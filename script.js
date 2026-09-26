@@ -1662,20 +1662,36 @@ function entriesForDay(dateKey) {
   return sortDailyEntries(journalViewEntries().filter((entry) => entry.date === dateKey));
 }
 
+function entryHasGoodComment(entry) {
+  const rawText = [entry?.value, entry?.subentries, entry?.raw]
+    .map((value) => {
+      if (typeof value === 'string') return value;
+      try { return JSON.stringify(value || ''); } catch { return ''; }
+    })
+    .join(' ')
+    .replaceAll('_', ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .toLowerCase();
+
+  // Green is reserved for something explicitly positive that the Champion
+  // logged. A NORMAL analysis status alone does not turn the calendar green.
+  return /\b(good day|all good|feel(?:ing)? good|felt good|doing well|feel(?:ing)? well|felt well|feeling better|felt better|much better|symptoms? (?:are |were )?(?:settled|calm|improved)|pain free|no pain|no blood|slept well|sleep (?:was |quality )?good|good sleep|energy (?:is |was )?good|good energy|mood (?:is |was )?sunny)\b/i.test(rawText);
+}
+
 function dayStatus(entries) {
   const healthEntries = entries.filter((entry) => entry.entry_type !== 'DOCTOR_APPOINTMENT');
   const status = highestStatus(healthEntries.map((entry) => entry.status));
-  // A day without a concerning entry is shown as green, including days when
-  // nothing was logged. Appointments remain a separate purple marker.
-  return status === 'neutral' ? 'normal' : status;
+  if (status === 'urgent' || status === 'worrying') return status;
+  if (healthEntries.some(entryHasGoodComment)) return 'good';
+  return 'neutral';
 }
 
 function statusLabel(status) {
-  return { normal: 'Normal', worrying: 'Needs attention', urgent: 'Urgent', neutral: 'Not analysed' }[status] || 'Not analysed';
+  return { good: 'Good', normal: 'Normal', worrying: 'Needs attention', urgent: 'Urgent', neutral: 'Normal' }[status] || 'Normal';
 }
 
 function statusCssName(status) {
-  return { normal: 'good', worrying: 'monitor', urgent: 'red' }[status] || '';
+  return { good: 'good', worrying: 'monitor', urgent: 'red' }[status] || '';
 }
 
 function entryTypeIcon(type) {
@@ -1790,8 +1806,10 @@ function buildCalendarMonth(year, month, groupedEntries) {
     });
 
     const indicators = document.createElement('span'); indicators.className = 'calendar-indicators'; indicators.setAttribute('aria-hidden', 'true');
-    const statusDot = document.createElement('i'); statusDot.className = `dot dot--${status === 'urgent' ? 'red' : status === 'worrying' ? 'yellow' : 'green'}`;
-    indicators.append(statusDot);
+    if (status !== 'neutral') {
+      const statusDot = document.createElement('i'); statusDot.className = `dot dot--${status === 'urgent' ? 'red' : status === 'worrying' ? 'yellow' : 'green'}`;
+      indicators.append(statusDot);
+    }
     if (hasAppointment) { const appointmentMark = document.createElement('i'); appointmentMark.className = 'appointment-diamond'; indicators.append(appointmentMark); }
     dayCell.append(indicators);
 
@@ -2306,6 +2324,7 @@ const shareCardOverlay = document.querySelector('#share-card-overlay');
 const shareCardContent = document.querySelector('#share-card-content');
 const shareApproval = document.querySelector('#share-approval');
 const shareCardQr = document.querySelector('#share-card-qr');
+const shareCardReview = document.querySelector('#share-card-review');
 let activeShareRange = null;
 const monthlySummaryRequests = new Map();
 
@@ -2549,6 +2568,9 @@ function openShareCard() {
   const monthlyTitle = document.createElement('h3'); monthlyTitle.textContent = 'AI Summary';
   const monthlyBody = document.createElement('div'); monthlyBody.className = 'monthly-summary-body'; monthlyBody.setAttribute('aria-live', 'polite');
   monthlySection.append(monthlyTitle, monthlyBody); shareCardContent.append(monthlySection);
+  // Approval and the existing QR belong to the same continuous document as
+  // the summary, rather than a detached fixed footer.
+  shareCardContent.append(shareCardReview);
   renderMonthlySummaryState(monthlyBody, 'loading');
 
   shareApproval.checked = false;
