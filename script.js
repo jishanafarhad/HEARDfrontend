@@ -3427,8 +3427,6 @@ patientForm.addEventListener('submit', async (event) => {
 const objectSheet = document.querySelector('#object-sheet');
 const objectSheetContent = document.querySelector('#object-sheet-content');
 const objectSheetBackdrop = document.querySelector('#object-sheet-backdrop');
-const roomCount = document.querySelector('#room-count');
-const roomCheckin = document.querySelector('#room-checkin');
 const roomXp = document.querySelector('#room-xp');
 const gameApiResponse = document.querySelector('#game-api-response');
 let roomDate = toDateKey();
@@ -3504,9 +3502,6 @@ function renderRoomState() {
     roomStorageKey = `heard-room-${roomDate}`;
     try { roomState = JSON.parse(localStorage.getItem(roomStorageKey)) || {}; } catch { roomState = {}; }
   }
-  const complete = ['wellbeing','stools','pain','meds'].filter((tile) => Boolean(roomTilePayload(tile))).length;
-  roomCount.textContent = String(complete);
-  roomCheckin.textContent = complete >= 4 ? ' · check-in done ✓' : '';
   roomXp.textContent = roomXpValue;
   const levelCard = document.querySelector('.level-card--header');
   if (levelCard) levelCard.setAttribute('aria-label', `Level 3, ${roomXpValue} of 100 XP`);
@@ -3515,10 +3510,7 @@ function renderRoomState() {
     const payload = roomTilePayload(tile);
     const label = button.querySelector('strong')?.textContent || 'Check-in';
     const summary = gameTileSummary(tile, payload);
-    button.classList.toggle('is-complete', Boolean(payload));
-    button.setAttribute('aria-pressed', String(Boolean(payload)));
     button.setAttribute('aria-label', `${label}: ${summary}`);
-    button.querySelector('i').textContent = payload ? '✓' : '';
   });
 }
 
