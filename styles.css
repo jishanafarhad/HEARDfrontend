@@ -420,12 +420,10 @@ button { -webkit-tap-highlight-color: transparent; }
   transition: transform .34s cubic-bezier(.2,.72,.25,1);
 }
 .journal-overlay.is-open .journal-shell { transform: translateY(0); }
-.journal-header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:2cqw; height:10%; min-height:70px; padding:1.4cqw 2.2cqw; color:white; background:linear-gradient(110deg,#185f9f,#0a376c); box-shadow:inset 0 -3px #062c57; }
+.journal-header { display:flex; align-items:center; justify-content:space-between; gap:2cqw; height:10%; min-height:70px; padding:1.4cqw 2.2cqw; color:white; background:linear-gradient(110deg,#185f9f,#0a376c); box-shadow:inset 0 -3px #062c57; }
 .journal-header small { color: #73e2ff; font-size: clamp(9px, 1.35cqw, 13px); font-weight: 900; letter-spacing: .15em; }
 .journal-header h2 { margin: .25cqw 0 0; font-size: clamp(21px, 3.6cqw, 34px); }
 .journal-header-actions { display: flex; gap: 1.1cqw; }
-.journal-header-legend { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.7cqw 1.2cqw; min-width:0; color:#e8f6ff; font-size:clamp(7px,1cqw,10px); font-weight:800; }
-.journal-header-legend span { display:flex; align-items:center; gap:.45cqw; white-space:nowrap; }
 .appointment-diamond { display:inline-block; width:1.15cqw; min-width:7px; aspect-ratio:1; border-radius:2px; background:#8d62d8; box-shadow:0 0 0 1px rgba(255,255,255,.4); transform:rotate(45deg); }
 .journal-header-actions button, #day-back { color: white; border: 1px solid #5da7e2; border-radius: 10px; background: #124d86; cursor: pointer; }
 .journal-header-actions button { min-height: 36px; padding: .8cqw 1.5cqw; font-size: clamp(12px, 1.8cqw, 17px); }
@@ -435,6 +433,11 @@ button { -webkit-tap-highlight-color: transparent; }
 .journal-toolbar-row { display:flex; align-items:center; justify-content:space-between; gap:2cqw; }
 .journal-toolbar-row > div { display:grid; }.journal-timeline-toolbar small { color:#787057; font-size:clamp(8px,1.1cqw,11px); font-weight:950; letter-spacing:.14em; }.journal-timeline-toolbar strong { margin-top:.25cqw; color:#173d68; font-size:clamp(13px,1.9cqw,18px); }
 #calendar-today { padding:.75cqw 1.35cqw; color:#fff; border:1px solid #4f9ad3; border-radius:999px; background:#15598d; box-shadow:0 3px 0 #0a3b67; cursor:pointer; font-weight:900; }
+.calendar-legend-bar { display:flex; align-items:center; flex-wrap:wrap; gap:.8cqw 1.35cqw; margin-top:1.15cqw; padding:1cqw 1.15cqw; color:#294b63; border:1px solid #af9a6d; border-radius:12px; background:linear-gradient(145deg,#fffdf3,#f4e6bd); box-shadow:inset 0 1px rgba(255,255,255,.8); font-size:clamp(8px,1.15cqw,11px); }
+.calendar-legend-bar > strong { flex:0 0 100%; margin:0; color:#174f7c; font-size:clamp(9px,1.3cqw,12px); letter-spacing:.05em; text-transform:uppercase; }
+.calendar-legend-bar span { display:flex; align-items:center; gap:.55cqw; white-space:nowrap; }
+.calendar-legend-bar .dot { width:1.55cqw; min-width:9px; }
+.calendar-legend-bar .appointment-diamond { width:1.35cqw; min-width:9px; box-shadow:0 0 0 1px rgba(78,43,125,.2); }
 .calendar-filters { display:flex; flex-wrap:wrap; gap:.7cqw; margin-top:1.2cqw; }
 .calendar-filters button { display:flex; align-items:center; gap:.55cqw; padding:.65cqw 1cqw; color:#31536d; border:1px solid #9eafad; border-radius:999px; background:#fffaf0; cursor:pointer; font-size:clamp(8px,1.15cqw,11px); font-weight:900; }
 .calendar-filters button.is-active { color:white; border-color:#247cae; background:#17699f; box-shadow:0 2px 0 #0b466d; }
@@ -473,6 +476,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .calendar-check { position: absolute; top: .35cqw; right: .45cqw; color: #168bcb; font-size: clamp(8px, 1.25cqw, 12px); font-weight: 900; }
 .calendar-indicators { position:absolute; left:.55cqw; bottom:.5cqw; display:flex; align-items:center; gap:.55cqw; }
 .calendar-indicators .dot { box-shadow:0 0 0 2px rgba(255,255,255,.8); }
+.calendar-indicators .appointment-diamond { min-width:9px; box-shadow:0 0 0 2px rgba(255,255,255,.85); }
 .calendar-key { display:flex; justify-content:flex-start; flex-wrap:wrap; gap:1.5cqw; margin-top:1cqw; color:#526378; font-size:clamp(8px,1.15cqw,11px); }
 .calendar-key span { display:flex; align-items:center; gap:.45cqw; }
 .dot { display:inline-block; width:1.2cqw; min-width:6px; aspect-ratio:1; border-radius:50%; }.dot--green { background:#3aa56c; }.dot--yellow { background:#e1a526; }.dot--red { background:#c91f2f; }
