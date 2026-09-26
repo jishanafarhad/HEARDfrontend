@@ -178,7 +178,7 @@ button { -webkit-tap-highlight-color: transparent; }
   background:transparent;
   cursor:pointer;
 }
-.room-destination span { position:absolute; display:flex; align-items:center; gap:.7cqw; padding:.5cqw .75cqw .5cqw 1cqw; color:#f5fbff; border:1px solid rgba(102,211,247,.82); border-radius:999px; background:linear-gradient(135deg,rgba(13,72,124,.88),rgba(6,45,84,.9)); box-shadow:0 2px 0 rgba(3,30,59,.72),inset 0 1px rgba(255,255,255,.13),0 4px 10px rgba(4,27,52,.2); backdrop-filter:blur(3px); white-space:nowrap; font-size:clamp(10px,1.3cqw,13px); font-weight:900; line-height:1.1; transition:transform .16s ease,filter .16s ease,background .16s ease; }
+.room-destination span { position:absolute; display:flex; align-items:center; gap:.7cqw; padding:.5cqw .75cqw .5cqw 1cqw; color:#f5fbff; border:1px solid rgba(102,211,247,.82); border-radius:999px; background:linear-gradient(135deg,rgba(13,72,124,.88),rgba(6,45,84,.9)); box-shadow:0 2px 0 rgba(3,30,59,.72),inset 0 1px rgba(255,255,255,.13),0 4px 10px rgba(4,27,52,.2); backdrop-filter:blur(3px); white-space:nowrap; font-size:15px; font-weight:900; line-height:1.1; transition:transform .16s ease,filter .16s ease,background .16s ease; }
 .room-destination span b { display:grid; place-items:center; width:2cqw; min-width:12px; aspect-ratio:1; color:#7ce6ff; border-radius:50%; background:rgba(52,166,218,.2); font-size:1.45em; font-weight:700; line-height:.7; }
 .room-destination--community { top:13.1%; left:32%; width:33%; height:13.2%; border-radius:10px; }
 .room-destination--community span { bottom:-.4cqw; left:50%; transform:translateX(-50%); }
@@ -740,7 +740,6 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 
 /* ---------- Interactive room game ---------- */
 .app.is-game-mode .room-widgets { display: block; }
-.app.is-game-mode .room-destination--journal { visibility:hidden; pointer-events:none; }
 .game-view { position:absolute; display:block; padding:0; overflow:hidden; }
 .structured-game {
   position:absolute;
