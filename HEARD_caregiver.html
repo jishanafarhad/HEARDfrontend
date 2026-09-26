@@ -1003,8 +1003,8 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .monthly-summary-markdown ul { margin:.7cqw 0 0; padding-left:2.6cqw; }
 .monthly-summary-markdown li { margin:.5cqw 0; }
 .monthly-summary-markdown strong { color:#174f7c; font-weight:950; }
-.monthly-summary-markdown .clinician-question-copy,
-.monthly-summary-markdown .clinician-question-copy strong { font-weight:400; }
+.clinician-question-copy,
+.clinician-question-copy strong { font-weight:400; }
 .share-qr { display:grid; justify-items:center; gap:.8cqw; margin-top:2cqw; padding:2cqw; border-top:2px solid rgba(180,154,108,.45); text-align:center; }
 .share-qr a { display:block; border-radius:12px; }
 .share-qr img { display:block; width:min(31cqw,190px); height:auto; aspect-ratio:1; padding:8px; border:1px solid #b49a6c; border-radius:12px; background:#fff; box-shadow:0 5px 14px rgba(56,43,24,.14); image-rendering:pixelated; }
@@ -2609,6 +2609,7 @@ function renderMarkdown(container, markdown) {
   const lines = String(markdown).replace(/\r\n/g, '\n').trim().split('\n');
   let paragraph = null;
   let list = null;
+  let isClinicianQuestionsSection = false;
 
   lines.forEach((line) => {
     const headingMatch = line.match(/^#{1,6}\s+(.+)$/);
@@ -2620,6 +2621,9 @@ function renderMarkdown(container, markdown) {
       const heading = document.createElement('h3');
       appendInlineMarkdown(heading, headingMatch[1]);
       container.append(heading);
+      isClinicianQuestionsSection = heading.textContent
+        .toLowerCase()
+        .includes('questions i want to ask my clinician');
       return;
     }
 
@@ -2630,6 +2634,7 @@ function renderMarkdown(container, markdown) {
         container.append(list);
       }
       const item = document.createElement('li');
+      if (isClinicianQuestionsSection) item.classList.add('clinician-question-copy');
       appendInlineMarkdown(item, listItem[1]);
       list.append(item);
       return;
@@ -2643,6 +2648,7 @@ function renderMarkdown(container, markdown) {
 
     if (!paragraph) {
       paragraph = document.createElement('p');
+      if (isClinicianQuestionsSection) paragraph.classList.add('clinician-question-copy');
       container.append(paragraph);
     } else {
       paragraph.append(document.createElement('br'));
@@ -4515,16 +4521,6 @@ function renderMonthlySummary(host, markdown) {
   host.setAttribute('aria-busy', 'false');
   const content = document.createElement('div'); content.className = 'monthly-summary-markdown';
   renderMarkdown(content, markdown);
-  const clinicianQuestionsHeading = [...content.querySelectorAll('h3')].find((heading) =>
-    heading.textContent.toLowerCase().includes('questions i want to ask my clinician')
-  );
-  if (clinicianQuestionsHeading) {
-    let questionContent = clinicianQuestionsHeading.nextElementSibling;
-    while (questionContent && questionContent.tagName !== 'H3') {
-      questionContent.classList.add('clinician-question-copy');
-      questionContent = questionContent.nextElementSibling;
-    }
-  }
   const review = document.createElement('details'); review.className = 'share-privacy-review';
   const reviewTitle = document.createElement('summary'); reviewTitle.textContent = 'Review or remove sensitive information';
   const reviewBody = document.createElement('div');

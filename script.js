@@ -959,6 +959,7 @@ function renderMarkdown(container, markdown) {
   const lines = String(markdown).replace(/\r\n/g, '\n').trim().split('\n');
   let paragraph = null;
   let list = null;
+  let isClinicianQuestionsSection = false;
 
   lines.forEach((line) => {
     const headingMatch = line.match(/^#{1,6}\s+(.+)$/);
@@ -970,6 +971,9 @@ function renderMarkdown(container, markdown) {
       const heading = document.createElement('h3');
       appendInlineMarkdown(heading, headingMatch[1]);
       container.append(heading);
+      isClinicianQuestionsSection = heading.textContent
+        .toLowerCase()
+        .includes('questions i want to ask my clinician');
       return;
     }
 
@@ -980,6 +984,7 @@ function renderMarkdown(container, markdown) {
         container.append(list);
       }
       const item = document.createElement('li');
+      if (isClinicianQuestionsSection) item.classList.add('clinician-question-copy');
       appendInlineMarkdown(item, listItem[1]);
       list.append(item);
       return;
@@ -993,6 +998,7 @@ function renderMarkdown(container, markdown) {
 
     if (!paragraph) {
       paragraph = document.createElement('p');
+      if (isClinicianQuestionsSection) paragraph.classList.add('clinician-question-copy');
       container.append(paragraph);
     } else {
       paragraph.append(document.createElement('br'));
@@ -2865,16 +2871,6 @@ function renderMonthlySummary(host, markdown) {
   host.setAttribute('aria-busy', 'false');
   const content = document.createElement('div'); content.className = 'monthly-summary-markdown';
   renderMarkdown(content, markdown);
-  const clinicianQuestionsHeading = [...content.querySelectorAll('h3')].find((heading) =>
-    heading.textContent.toLowerCase().includes('questions i want to ask my clinician')
-  );
-  if (clinicianQuestionsHeading) {
-    let questionContent = clinicianQuestionsHeading.nextElementSibling;
-    while (questionContent && questionContent.tagName !== 'H3') {
-      questionContent.classList.add('clinician-question-copy');
-      questionContent = questionContent.nextElementSibling;
-    }
-  }
   const review = document.createElement('details'); review.className = 'share-privacy-review';
   const reviewTitle = document.createElement('summary'); reviewTitle.textContent = 'Review or remove sensitive information';
   const reviewBody = document.createElement('div');

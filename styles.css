@@ -989,8 +989,8 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .monthly-summary-markdown ul { margin:.7cqw 0 0; padding-left:2.6cqw; }
 .monthly-summary-markdown li { margin:.5cqw 0; }
 .monthly-summary-markdown strong { color:#174f7c; font-weight:950; }
-.monthly-summary-markdown .clinician-question-copy,
-.monthly-summary-markdown .clinician-question-copy strong { font-weight:400; }
+.clinician-question-copy,
+.clinician-question-copy strong { font-weight:400; }
 .share-qr { display:grid; justify-items:center; gap:.8cqw; margin-top:2cqw; padding:2cqw; border-top:2px solid rgba(180,154,108,.45); text-align:center; }
 .share-qr a { display:block; border-radius:12px; }
 .share-qr img { display:block; width:min(31cqw,190px); height:auto; aspect-ratio:1; padding:8px; border:1px solid #b49a6c; border-radius:12px; background:#fff; box-shadow:0 5px 14px rgba(56,43,24,.14); image-rendering:pixelated; }
