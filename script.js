@@ -341,7 +341,7 @@ const championStrengths = Object.freeze([
   { name: 'Cloudfinch the Brightmind', category: 'literacy', categoryLabel: 'Competency & Literacy', trait: 'Understanding information clearly' },
   { name: 'Grimbleaf the Enduring', category: 'resiliency', categoryLabel: 'Resiliency', trait: 'Continuing through uncertainty and discomfort' },
   { name: 'Crysthorn the Resolute', category: 'resiliency', categoryLabel: 'Resiliency', trait: 'Strength, determination and resolve' },
-  { name: 'Venomurk the Analyst', category: 'literacy', categoryLabel: 'Competency & Literacy', trait: 'Recognising symptoms and patterns' },
+  { name: 'Venomurk the Analyst', category: 'literacy', categoryLabel: 'Competency & Literacy', trait: 'Recognising symptoms and patterns', image: './heard-20-monsters-standalone-png/venomurk-the-analyst.png', unlocked: true },
   { name: 'Ironclaw the Strategist', category: 'literacy', categoryLabel: 'Competency & Literacy', trait: 'Planning and making informed decisions' },
   { name: 'Lunamoth the Rhythmkeeper', category: 'habits', categoryLabel: 'Building Good Habits', trait: 'Maintaining healthy sleep and wellness rhythms' },
   { name: 'Bramblehorn the Persevering', category: 'resiliency', categoryLabel: 'Resiliency', trait: 'Persevering through long-term challenges' },
@@ -357,7 +357,7 @@ function renderCommunityHome() {
   destinationContent.innerHTML = `
     <section class="community-hero">
       <img class="community-hero-icon" src="./public/Community Icon.png" alt="" />
-      <div><small>EVAN’S COLLECTION</small><h3>Champion’s Strengths</h3><p>Meet the strength monsters you’ve unlocked along your journey.</p></div>
+      <div><small>EVAN’S COLLECTION</small><h3>Champion’s Strengths</h3><p>Meet the strength pets you’ve unlocked along your journey.</p></div>
       <button class="strengths-open" id="strengths-open" type="button"><span>View collection <small>+2 XP</small></span><b aria-hidden="true">›</b></button>
     </section>
 
@@ -395,23 +395,25 @@ function renderChampionResults(query = '') {
 }
 
 function renderChampionStrengths() {
-  const monsterCards = championStrengths.map((monster) => monster.unlocked
-    ? `<article class="monster-box monster-box--unlocked monster-box--${monster.category}" aria-label="Discovered: ${monster.name}. ${monster.trait}">
+  const orderedPets = [...championStrengths].sort((first, second) => Number(Boolean(second.unlocked)) - Number(Boolean(first.unlocked)));
+  const discoveredPets = orderedPets.filter((pet) => pet.unlocked).length;
+  const petCards = orderedPets.map((pet) => pet.unlocked
+    ? `<article class="monster-box monster-box--unlocked monster-box--${pet.category}" aria-label="Discovered pet: ${pet.name}. ${pet.trait}">
          <span class="monster-rarity">DISCOVERED</span>
-         <img src="${monster.image}" alt="${monster.name}" />
-         <div><strong>${monster.name}</strong><small>${monster.categoryLabel}</small></div>
+         <img src="${pet.image}" alt="${pet.name}" />
+         <div><strong>${pet.name}</strong><small>${pet.categoryLabel}</small></div>
        </article>`
-    : `<div class="monster-box monster-box--locked monster-box--${monster.category}" aria-label="Locked: ${monster.name}. ${monster.categoryLabel}">
-         <span>?</span><strong>${monster.name}</strong><small>${monster.categoryLabel}</small>
+    : `<div class="monster-box monster-box--locked monster-box--${pet.category}" aria-label="Locked pet: ${pet.name}. ${pet.categoryLabel}">
+         <span>?</span><strong>${pet.name}</strong><small>${pet.categoryLabel}</small>
        </div>`).join('');
   destinationKicker.textContent = 'CHAMPION’S STRENGTHS';
-  destinationTitle.textContent = 'Monster Collection';
+  destinationTitle.textContent = 'Pet Collection';
   destinationContent.innerHTML = `
     <button class="community-inline-back" id="community-inline-back" type="button">‹ <span>Back to Community</span></button>
-    <section class="strengths-intro"><small>1 OF 20 DISCOVERED</small><h3>Your strength shelf</h3><p>Each monster celebrates a strength you’ve shown. Keep checking in and taking part to discover more.</p><div class="strength-legend"><span class="is-resiliency">● Resiliency</span><span class="is-literacy">● Competency &amp; Literacy</span><span class="is-habits">● Building Good Habits</span></div></section>
-    <div class="monster-gondola" aria-label="Champion’s Strengths monster collection">
+    <section class="strengths-intro"><small>${discoveredPets} OF ${orderedPets.length} DISCOVERED</small><h3>Your pet shelf</h3><p>Each pet celebrates a strength you’ve shown. Keep checking in and taking part to discover more.</p><div class="strength-legend"><span class="is-resiliency">● Resiliency</span><span class="is-literacy">● Competency &amp; Literacy</span><span class="is-habits">● Building Good Habits</span></div></section>
+    <div class="monster-gondola" aria-label="Champion’s Strengths pet collection">
       <div class="gondola-sign"><span>EVAN’S</span><strong>CHAMPION’S STRENGTHS</strong></div>
-      <div class="monster-shelf">${monsterCards}</div>
+      <div class="monster-shelf">${petCards}</div>
       <div class="gondola-base" aria-hidden="true"></div>
     </div>`;
 }
@@ -550,7 +552,7 @@ const capsuleAssets = Object.freeze({
   fluffern: './public/capsule-reveal/fluffern.webp'
 });
 
-function chooseUnlockMonster() {
+function chooseUnlockPet() {
   return 'fluffern';
 }
 
@@ -568,7 +570,7 @@ function openSecretUnlock() {
     return;
   }
   capsuleReveal = window.HeardCapsuleReveal.play(unlockReveal, {
-    monster: chooseUnlockMonster(),
+    monster: chooseUnlockPet(),
     assets: capsuleAssets,
     autoOpen: false,
     background: false,

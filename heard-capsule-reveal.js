@@ -147,7 +147,7 @@ function play(container,opt){
   kick.style.opacity=0;state("crack");await wait(520);if(!alive)return;
   state("open");await wait(900);if(!alive)return;
   state("emerge");await wait(1300);if(!alive)return;
-  state("out");kick.textContent="New monster!";kick.style.opacity=1;
+  state("out");kick.textContent="New pet!";kick.style.opacity=1;
   const spot=root.querySelector(".hcr-spot");
   for(let i=0;i<28;i++){const c=document.createElement("span"),a=Math.random()*6.28,d=28+Math.random()*40;c.className="hcr-conf";
    c.style.background=[m.acc,"#FFF1C9","#40E6DC"][i%3];c.style.setProperty("--x",`calc(var(--u)*${Math.cos(a)*d})`);c.style.setProperty("--y",`calc(var(--u)*${Math.sin(a)*d})`);
