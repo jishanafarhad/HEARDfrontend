@@ -810,7 +810,7 @@ function createCompanionMessage(text = '', options = {}) {
   avatar.className = 'avatar avatar--bot';
   avatar.setAttribute('aria-hidden', 'true');
   const avatarImage = document.createElement('img');
-  avatarImage.src = './public/Heard icon.png';
+  avatarImage.src = './public/heard-chat-robot.png';
   avatarImage.alt = '';
   avatar.append(avatarImage);
 
