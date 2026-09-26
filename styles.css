@@ -649,6 +649,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .learning-activity--tell-more { --activity-color:#365e9e; }.learning-activity--tap-reveal { --activity-color:#6f62bd; }.learning-activity--myth-fact { --activity-color:#26a18e; }.learning-activity--scenario { --activity-color:#db8840; }.learning-activity--med-adherence { --activity-color:#2c8b78; }.learning-activity--one-thing { --activity-color:#b85591; }
 .learning-activity-icon { display:grid; place-items:center; width:9cqw; min-width:58px; max-width:76px; aspect-ratio:1; margin:0 auto 1.8cqw; border-radius:20px; background:color-mix(in srgb,var(--activity-color) 15%,white); font-size:clamp(28px,5cqw,43px); }
 .learning-lede { margin:0 auto 2cqw; max-width:30em; color:#173e66; font-size:clamp(17px,2.7cqw,24px); font-weight:900; line-height:1.28; text-align:center; }
+.learning-question { max-width:25em; margin:0 auto 1.2cqw; color:#173e66; font-size:clamp(20px,3.1cqw,28px); font-weight:950; line-height:1.25; text-align:center; }
 .micro-read { padding:2cqw; border:1px solid #b5d3dd; border-radius:17px; background:#f8fdfd; }.micro-read p { margin:0; color:#49677d; font-size:clamp(13px,1.8cqw,16px); line-height:1.55; }.micro-read p + p { margin-top:1.4cqw; }
 .learning-takeaway,.learning-answer { margin-top:1.8cqw; padding:1.8cqw; border:2px solid color-mix(in srgb,var(--activity-color) 40%,#d8e7e8); border-radius:16px; background:color-mix(in srgb,var(--activity-color) 8%,white); }.learning-takeaway strong,.learning-takeaway span,.learning-answer strong { display:block; }.learning-takeaway span,.learning-answer p { margin:.5cqw 0 0; color:#4c687b; line-height:1.45; }
 .learning-source { display:block; margin-top:1.6cqw; color:#286b9d; font-size:clamp(10px,1.35cqw,12px); font-weight:850; text-align:center; }
@@ -733,6 +734,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .destination-page--learning .learning-activity--med-adherence { --activity-color:#257f69; }
 .destination-page--learning .learning-activity--one-thing { --activity-color:#65a75f; }
 .destination-page--learning .learning-lede,
+.destination-page--learning .learning-question,
 .destination-page--learning .reflection-prompt { color:#194d3b; }
 .destination-page--learning .micro-read { border-color:#afd5bc; background:#f5fcf7; }
 .destination-page--learning .learning-source { color:#287456; }

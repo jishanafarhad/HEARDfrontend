@@ -278,8 +278,8 @@ function openLearningFormat(format) {
     return;
   }
   if (format === 'myth-fact') {
-    learningActivityShell(format, 'Myth or Fact', 'If I feel well, inflammation must be gone.', `
-      <div class="learning-activity-icon" aria-hidden="true">🧠</div><p class="learning-lede">Choose your answer:</p><div class="learning-choice-row"><button type="button" data-myth-choice="myth">Myth</button><button type="button" data-myth-choice="fact">Fact</button></div><div class="learning-answer" id="learning-myth-answer" hidden aria-live="polite"></div>`);
+    learningActivityShell(format, 'Mini lesson', 'Myth or Fact', `
+      <p class="learning-question">If I feel well, inflammation must be gone.</p><p class="learning-lede">Choose your answer:</p><div class="learning-choice-row"><button type="button" data-myth-choice="myth">Myth</button><button type="button" data-myth-choice="fact">Fact</button></div><div class="learning-answer" id="learning-myth-answer" hidden aria-live="polite"></div>`);
     return;
   }
   if (format === 'scenario') {
