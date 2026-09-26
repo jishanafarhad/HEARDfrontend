@@ -463,6 +463,7 @@ const championStrengths = Object.freeze([
   { name: 'Gravemaw the Unbroken', category: 'resiliency', categoryLabel: 'Resiliency', trait: 'Inner strength during major challenges' },
   { name: 'Elythera the Wisdomweaver', category: 'literacy', categoryLabel: 'Competency & Literacy', trait: 'Connecting knowledge, experience and reflection' }
 ]);
+const PET_UNLOCK_HEALTHPOINTS = 50;
 
 function renderCommunityHome() {
   destinationKicker.textContent = 'YOU’RE NOT ALONE';
@@ -523,10 +524,10 @@ function renderChampionStrengths() {
   const orderedPets = [...championStrengths].sort((first, second) => Number(Boolean(second.unlocked)) - Number(Boolean(first.unlocked)));
   const discoveredPets = orderedPets.filter((pet) => pet.unlocked).length;
   const petCards = orderedPets.map((pet) => pet.unlocked
-    ? `<article class="monster-box monster-box--unlocked monster-box--${pet.category}" aria-label="Discovered pet: ${pet.name}. ${pet.trait}">
+    ? `<article class="monster-box monster-box--unlocked monster-box--${pet.category}" aria-label="Discovered pet: ${pet.name}. ${pet.trait}. ${PET_UNLOCK_HEALTHPOINTS} HPB Healthpoints earned.">
          <span class="monster-rarity">DISCOVERED</span>
          <img src="${pet.image}" alt="${pet.name}" />
-         <div><strong>${pet.name}</strong><small>${pet.categoryLabel}</small></div>
+         <div><strong>${pet.name}</strong><small>${pet.categoryLabel}</small><span class="monster-healthpoints"><b>HPB</b> +${PET_UNLOCK_HEALTHPOINTS} Healthpoints</span></div>
        </article>`
     : `<div class="monster-box monster-box--locked" aria-label="Locked blind-box pet">
          <span>?</span><strong>Mystery pet</strong><small>Blind box</small>
