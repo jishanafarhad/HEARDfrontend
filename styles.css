@@ -638,14 +638,14 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .learning-format-grid .learning-card { position:relative; overflow:hidden; padding:1.8cqw 2cqw; cursor:pointer; transition:transform .16s ease,filter .16s ease; }
 .learning-format-grid .learning-card::before { content:""; position:absolute; inset:0 auto 0 0; width:.75cqw; min-width:5px; background:var(--format-color,#4cbfd3); }
 .learning-format-grid .learning-card:hover { filter:brightness(1.03); transform:translateY(-2px); }.learning-format-grid .learning-card:active { transform:translateY(1px); }
-.learning-card--more { --format-color:#365e9e; }.learning-card--read { --format-color:#447fd0; }.learning-card--reveal { --format-color:#6f62bd; }.learning-card--myth { --format-color:#26a18e; }.learning-card--scenario { --format-color:#db8840; }.learning-card--try { --format-color:#b85591; }
+.learning-card--more { --format-color:#365e9e; }.learning-card--read { --format-color:#447fd0; }.learning-card--reveal { --format-color:#6f62bd; }.learning-card--myth { --format-color:#26a18e; }.learning-card--scenario { --format-color:#db8840; }.learning-card--meds { --format-color:#2c8b78; }.learning-card--try { --format-color:#b85591; }
 .learning-format-grid .learning-card > span:first-child { background:color-mix(in srgb,var(--format-color) 15%,white); }
 .learning-card em { display:block; margin-bottom:.25cqw; color:var(--format-color); font-size:clamp(8px,1.05cqw,10px); font-style:normal; font-weight:950; letter-spacing:.11em; }
 .learning-card .participation-xp { display:inline-block; margin-top:.7cqw; padding:.4cqw .8cqw; color:#6b4c00; border:1px solid #f0c94d; border-radius:999px; background:#fff0a8; font-size:clamp(8px,1.05cqw,10px); font-style:normal; font-weight:950; line-height:1; letter-spacing:.02em; }
 .learning-inline-back { display:flex; align-items:center; gap:.8cqw; margin:0 0 2.2cqw; padding:1cqw 1.5cqw; color:#22557e; border:2px solid #8ac9da; border-radius:999px; background:rgba(255,255,255,.78); font-weight:900; cursor:pointer; }
 .learning-activity { --activity-color:#447fd0; position:relative; max-width:680px; margin:0 auto 4cqw; padding:3.2cqw; overflow:hidden; color:#173e66; border:2px solid #8ec7d5; border-radius:24px; background:rgba(255,255,255,.86); box-shadow:0 6px 0 #bdd9d8,0 14px 28px rgba(44,75,100,.13); }
 .learning-activity::before { content:""; position:absolute; inset:0 0 auto; height:.85cqw; min-height:6px; background:var(--activity-color); }
-.learning-activity--tell-more { --activity-color:#365e9e; }.learning-activity--tap-reveal { --activity-color:#6f62bd; }.learning-activity--myth-fact { --activity-color:#26a18e; }.learning-activity--scenario { --activity-color:#db8840; }.learning-activity--one-thing { --activity-color:#b85591; }
+.learning-activity--tell-more { --activity-color:#365e9e; }.learning-activity--tap-reveal { --activity-color:#6f62bd; }.learning-activity--myth-fact { --activity-color:#26a18e; }.learning-activity--scenario { --activity-color:#db8840; }.learning-activity--med-adherence { --activity-color:#2c8b78; }.learning-activity--one-thing { --activity-color:#b85591; }
 .learning-activity-icon { display:grid; place-items:center; width:9cqw; min-width:58px; max-width:76px; aspect-ratio:1; margin:0 auto 1.8cqw; border-radius:20px; background:color-mix(in srgb,var(--activity-color) 15%,white); font-size:clamp(28px,5cqw,43px); }
 .learning-lede { margin:0 auto 2cqw; max-width:30em; color:#173e66; font-size:clamp(17px,2.7cqw,24px); font-weight:900; line-height:1.28; text-align:center; }
 .micro-read { padding:2cqw; border:1px solid #b5d3dd; border-radius:17px; background:#f8fdfd; }.micro-read p { margin:0; color:#49677d; font-size:clamp(13px,1.8cqw,16px); line-height:1.55; }.micro-read p + p { margin-top:1.4cqw; }
@@ -655,6 +655,18 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .reveal-card { display:grid; grid-template-columns:1fr auto; align-items:center; gap:2cqw; width:100%; padding:2.3cqw; color:white; border:2px solid #9187d8; border-radius:18px; background:linear-gradient(135deg,#6755ad,#8270c7); box-shadow:0 5px 0 #493b86; cursor:pointer; font-size:clamp(17px,2.5cqw,22px); font-weight:900; }.reveal-card b { display:grid; place-items:center; width:6cqw; min-width:40px; aspect-ratio:1; border-radius:50%; background:rgba(255,255,255,.18); font-size:1.35em; }
 .learning-choice-row { display:grid; grid-template-columns:1fr 1fr; gap:1.3cqw; }.learning-choice-row button,.scenario-choices button { padding:1.6cqw; color:#17476b; border:2px solid #8eb4c4; border-radius:15px; background:#fffdf2; box-shadow:0 3px 0 #c4d3d4; cursor:pointer; font-weight:900; }.learning-choice-row button.is-selected,.scenario-choices button.is-selected { color:white; border-color:var(--activity-color); background:var(--activity-color); box-shadow:0 3px 0 color-mix(in srgb,var(--activity-color) 70%,black); }
 .scenario-choices { display:grid; gap:1.1cqw; }.scenario-choices button { text-align:left; }
+.medication-quiz-intro { margin:0 0 1.6cqw; color:#597184; line-height:1.5; text-align:center; }
+.medication-quiz { display:grid; gap:1.35cqw; }
+.medication-quiz-question { padding:1.6cqw; border:1px solid #9ec7bd; border-radius:16px; background:#f7fcf9; }
+.medication-quiz-question > small { color:#2c806f; font-size:clamp(8px,1.1cqw,10px); font-weight:950; letter-spacing:.11em; }
+.medication-quiz-question h3 { margin:.45cqw 0 1.2cqw; color:#173f62; font-size:clamp(14px,2cqw,18px); line-height:1.3; }
+.medication-quiz-choices { display:grid; grid-template-columns:1fr 1fr; gap:1cqw; }
+.medication-quiz-choices button { min-height:44px; padding:1cqw; color:#24566c; border:2px solid #91b5b3; border-radius:12px; background:#fffdf4; cursor:pointer; font-weight:900; }
+.medication-quiz-choices button.is-selected { color:white; border-color:#2c8b78; background:#2c8b78; box-shadow:0 3px 0 #1d6859; }
+.medication-quiz-feedback { margin-top:1.2cqw; padding:1.2cqw; color:#365c5a; border-radius:11px; background:#e2f5ec; }
+.medication-quiz-feedback strong { display:block; color:#246755; }.medication-quiz-feedback p { margin:.35cqw 0 0; line-height:1.45; }
+.medication-quiz-progress { margin:1.5cqw 0 0; color:#527268; font-weight:900; text-align:center; }
+.medication-quiz-complete { border-color:#79bea6; background:#edf9f3; }
 .learning-activity blockquote { margin:0 0 2cqw; color:#7e3567; font-size:clamp(20px,3.3cqw,30px); font-weight:900; line-height:1.25; text-align:center; }
 .reflection-prompt { display:block; margin-bottom:1cqw; color:#234a6a; font-weight:900; }.learning-activity textarea { width:100%; padding:1.5cqw; resize:vertical; color:#173e66; border:2px solid #c18fb3; border-radius:15px; background:#fffafb; font:700 clamp(13px,1.8cqw,16px)/1.4 Nunito,sans-serif; }
 .reflection-done { width:100%; margin-top:1.3cqw; padding:1.4cqw; color:white; border:2px solid #dd79b6; border-radius:14px; background:linear-gradient(#bf5b96,#984271); box-shadow:0 4px 0 #6d2e53; cursor:pointer; font-weight:900; }.reflection-response { margin:1.4cqw 0 0; color:#7a3563; font-weight:900; text-align:center; }

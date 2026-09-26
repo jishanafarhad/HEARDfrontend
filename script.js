@@ -241,6 +241,7 @@ function renderLearningHome() {
       <button class="learning-card learning-card--reveal" type="button" data-learning-format="tap-reveal"><span>👆</span><span><em>GUESS, THEN REVEAL</em><strong>Tap to Reveal</strong><small>Can stress cause an IBD flare?</small><i class="participation-xp">+5 XP</i></span><b>›</b></button>
       <button class="learning-card learning-card--myth" type="button" data-learning-format="myth-fact"><span>🧠</span><span><em>ONE QUICK CHOICE</em><strong>Myth or Fact</strong><small>If I feel well, my inflammation must be gone.</small><i class="participation-xp">+5 XP</i></span><b>›</b></button>
       <button class="learning-card learning-card--scenario" type="button" data-learning-format="scenario"><span>🎭</span><span><em>REAL-LIFE PRACTICE</em><strong>What Would You Do?</strong><small>Going out with friends when food feels uncertain.</small><i class="participation-xp">+5 XP</i></span><b>›</b></button>
+      <button class="learning-card learning-card--meds" type="button" data-learning-format="med-adherence"><span>💊</span><span><em>4 QUICK QUESTIONS</em><strong>Medication Adherence</strong><small>Notice what helps—or gets in the way—without judgement.</small><i class="participation-xp">+5 XP</i></span><b>›</b></button>
       <button class="learning-card learning-card--try" type="button" data-learning-format="one-thing"><span>💭</span><span><em>A MOMENT FOR YOU</em><strong>One Thing to Try</strong><small>Name something you enjoyed today beyond IBD.</small><i class="participation-xp">+5 XP</i></span><b>›</b></button>
     </div>`;
 }
@@ -285,6 +286,21 @@ function openLearningFormat(format) {
       <div class="learning-activity-icon" aria-hidden="true">🎭</div><p class="learning-lede">You’re going out with friends and you’re worried about food. What could you do?</p><div class="scenario-choices"><button type="button" data-scenario-choice="plan">Check the menu and choose a backup before you go</button><button type="button" data-scenario-choice="talk">Tell one trusted friend what would help</button><button type="button" data-scenario-choice="skip">Skip the whole plan without telling anyone</button></div><div class="learning-answer" id="learning-scenario-answer" hidden aria-live="polite"></div>`);
     return;
   }
+  if (format === 'med-adherence') {
+    learningActivityShell(format, 'Medication Adherence', 'What supports your routine?', `
+      <div class="learning-activity-icon" aria-hidden="true">💊</div>
+      <p class="learning-lede">Four quick questions about taking your IBD medication.</p>
+      <p class="medication-quiz-intro">There are no right or wrong answers. Choose what is true for you and get one practical idea at a time.</p>
+      <div class="medication-quiz" aria-label="Medication adherence questions">
+        <section class="medication-quiz-question" data-medication-question="forget"><small>FORGETTING</small><h3>Do you ever forget to take your IBD medication?</h3><div class="medication-quiz-choices"><button type="button" data-medication-answer="yes" aria-pressed="false">Yes</button><button type="button" data-medication-answer="no" aria-pressed="false">No</button></div><div class="medication-quiz-feedback" hidden aria-live="polite"></div></section>
+        <section class="medication-quiz-question" data-medication-question="careless"><small>ROUTINE</small><h3>Are you careless at times about taking your medication?</h3><div class="medication-quiz-choices"><button type="button" data-medication-answer="yes" aria-pressed="false">Yes</button><button type="button" data-medication-answer="no" aria-pressed="false">No</button></div><div class="medication-quiz-feedback" hidden aria-live="polite"></div></section>
+        <section class="medication-quiz-question" data-medication-question="wellbeing"><small>WHEN YOU FEEL WELL</small><h3>When you feel better, do you sometimes stop taking your medication?</h3><div class="medication-quiz-choices"><button type="button" data-medication-answer="yes" aria-pressed="false">Yes</button><button type="button" data-medication-answer="no" aria-pressed="false">No</button></div><div class="medication-quiz-feedback" hidden aria-live="polite"></div></section>
+        <section class="medication-quiz-question" data-medication-question="side-effects"><small>WHEN YOU FEEL WORSE</small><h3>Sometimes, if you feel worse when you take the medicine, do you stop taking it?</h3><div class="medication-quiz-choices"><button type="button" data-medication-answer="yes" aria-pressed="false">Yes</button><button type="button" data-medication-answer="no" aria-pressed="false">No</button></div><div class="medication-quiz-feedback" hidden aria-live="polite"></div></section>
+      </div>
+      <p class="medication-quiz-progress" id="medication-quiz-progress" role="status">0 of 4 answered</p>
+      <div class="learning-answer medication-quiz-complete" id="medication-quiz-complete" hidden><strong>Your routine is personal.</strong><p>Keep the ideas that fit. If doses, side effects or access are difficult, your IBD team or pharmacist can help you make a plan that works for you.</p></div>`);
+    return;
+  }
   learningActivityShell('one-thing', 'One Thing to Try', 'Your life is bigger than IBD', `
     <div class="learning-activity-icon" aria-hidden="true">💭</div><blockquote>“Your disease is part of your life, not your whole life.”</blockquote><label class="reflection-prompt" for="learning-reflection">Name one thing you enjoyed today that had nothing to do with IBD.</label><textarea id="learning-reflection" rows="4" placeholder="I enjoyed…"></textarea><button class="reflection-done" type="button" data-reflection-done>Done for today</button><p class="reflection-response" id="reflection-response" hidden aria-live="polite">That moment belongs to you. ✨</p>`);
 }
@@ -303,6 +319,7 @@ const learningDiscoveryCopy = Object.freeze({
   stress: 'Stress can affect symptoms, but a flare is never a personal failure.',
   inflammation: 'Feeling better and having controlled inflammation are not always the same thing.',
   planning: 'A small plan or one trusted person can make social situations feel more manageable.',
+  medication: 'Medication routines work best when they fit your real life—and support is available when something gets in the way.',
   joy: 'Your life contains moments that belong to you—not to IBD.'
 });
 const completedLearningDiscoveries = new Set();
@@ -505,6 +522,50 @@ destinationContent.addEventListener('click', (event) => {
     answer.innerHTML = `<strong>${heading}</strong><p>${copy}</p>`;
     answer.hidden = false;
     showLearningDiscovery('planning');
+    return;
+  }
+  const medicationAnswer = event.target.closest('[data-medication-answer]');
+  if (medicationAnswer) {
+    const question = medicationAnswer.closest('[data-medication-question]');
+    const key = question?.dataset.medicationQuestion;
+    const answerValue = medicationAnswer.dataset.medicationAnswer;
+    const education = {
+      forget: {
+        yes: ['Make remembering easier', 'A phone reminder, pill organiser or linking medication to something you already do can reduce the mental load.'],
+        no: ['Your reminder system is helping', 'Notice what makes remembering easier and keep that cue part of your routine.']
+      },
+      careless: {
+        yes: ['Routines can wobble', 'Busy or unusual days can interrupt a routine. Keeping medication near a reliable daily cue can help.'],
+        no: ['You have a consistent routine', 'Keep using the setup that makes medication easy to notice and reach.']
+      },
+      wellbeing: {
+        yes: ['Feeling well can make medication feel less urgent', 'Feeling better does not always mean inflammation is controlled. Talk with your IBD team before stopping or changing medication.'],
+        no: ['You keep the longer-term goal in view', 'Continuing the agreed plan when you feel well helps your care team understand how treatment is working.']
+      },
+      'side-effects': {
+        yes: ['Side effects deserve support', 'Tell your IBD team or pharmacist what you notice. They can discuss safe next steps—do not change the plan without checking with them.'],
+        no: ['Keep noticing how medicines affect you', 'If a new effect appears, note what happened and contact your IBD team or pharmacist for advice.']
+      }
+    };
+    if (!question || !education[key]?.[answerValue]) return;
+    question.querySelectorAll('[data-medication-answer]').forEach((button) => {
+      const selected = button === medicationAnswer;
+      button.classList.toggle('is-selected', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
+    question.dataset.answered = answerValue;
+    const [heading, copy] = education[key][answerValue];
+    const feedback = question.querySelector('.medication-quiz-feedback');
+    feedback.innerHTML = `<strong>${heading}</strong><p>${copy}</p>`;
+    feedback.hidden = false;
+    const answered = destinationContent.querySelectorAll('[data-medication-question][data-answered]').length;
+    const progress = destinationContent.querySelector('#medication-quiz-progress');
+    progress.textContent = `${answered} of 4 answered`;
+    if (answered === 4) {
+      destinationContent.querySelector('#medication-quiz-complete').hidden = false;
+      progress.textContent = 'All four answered ✓';
+      showLearningDiscovery('medication');
+    }
     return;
   }
   if (event.target.closest('[data-reflection-done]')) {
@@ -3350,9 +3411,9 @@ function openMedsSheet() {
   const question = document.createElement('section'); question.className = 'sheet-question medicine-primary-question';
   const title = document.createElement('h3'); title.textContent = 'Did you take your prescribed IBD medications today?';
   const choices = document.createElement('div'); choices.className = 'medicine-primary-actions';
+  const no = document.createElement('button'); no.type = 'button'; no.className = 'medicine-primary-button medicine-primary-button--no'; no.textContent = 'MISSED MY DOSE';
   const yes = document.createElement('button'); yes.type = 'button'; yes.className = 'medicine-primary-button medicine-primary-button--yes'; yes.textContent = 'YES, ALL TAKEN 👍';
-  const no = document.createElement('button'); no.type = 'button'; no.className = 'medicine-primary-button medicine-primary-button--no'; no.textContent = 'NOT TODAY 🛑';
-  choices.append(yes, no); question.append(title, choices);
+  choices.append(no, yes); question.append(title, choices);
 
   const reasonSection = document.createElement('section'); reasonSection.className = 'sheet-question medicine-reasons'; reasonSection.hidden = true;
   const reasonTitle = document.createElement('h3'); reasonTitle.textContent = 'Understood. Health shifts happen. What got in the way today?';
