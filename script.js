@@ -475,13 +475,15 @@ function renderCommunityHome() {
 
     <section class="community-section" aria-labelledby="champion-search-title">
       <div class="community-section-heading"><span class="community-heading-icon" aria-hidden="true">⌕</span><div><small>FIND YOUR PEOPLE</small><h3 id="champion-search-title">Find IBD Champions</h3></div></div>
-      <form class="champion-search" id="champion-search" role="search">
-        <label class="sr-only" for="champion-search-input">Search IBD Champions</label>
-        <input id="champion-search-input" type="search" autocomplete="off" placeholder="Search by Champion name or interest" />
-        <button type="submit">Search</button>
-      </form>
+      <div class="champion-search-shell">
+        <form class="champion-search" id="champion-search" role="search">
+          <label class="sr-only" for="champion-search-input">Search IBD Champions</label>
+          <input id="champion-search-input" type="search" autocomplete="off" placeholder="Search by Champion name or interest" aria-controls="champion-results" aria-expanded="false" />
+          <button type="submit">Search</button>
+        </form>
+        <div class="champion-results" id="champion-results" aria-live="polite" hidden></div>
+      </div>
       <p class="community-search-note">Demo profiles for this prototype. In the live app, only Champions who choose to be discoverable will appear. <strong>Explore once today · +2 XP</strong></p>
-      <div class="champion-results" id="champion-results" aria-live="polite"></div>
     </section>
 
     <section class="community-section community-events" aria-labelledby="community-events-title">
@@ -497,16 +499,23 @@ function renderChampionResults(query = '') {
   const results = destinationContent.querySelector('#champion-results');
   if (!results) return;
   const cleanQuery = query.trim().toLocaleLowerCase();
+  const searchInput = destinationContent.querySelector('#champion-search-input');
+  if (!cleanQuery) {
+    results.replaceChildren();
+    results.hidden = true;
+    searchInput?.setAttribute('aria-expanded', 'false');
+    return;
+  }
   const queryTerms = cleanQuery.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-  const matches = cleanQuery
-    ? communityChampions.filter(({ name, detail }) => {
-        const profileTerms = `${name} ${detail}`.toLocaleLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-        return queryTerms.every((term) => profileTerms.some((profileTerm) => profileTerm.startsWith(term)));
-      })
-    : communityChampions;
+  const matches = communityChampions.filter(({ name, detail }) => {
+    const profileTerms = `${name} ${detail}`.toLocaleLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    return queryTerms.every((term) => profileTerms.some((profileTerm) => profileTerm.startsWith(term)));
+  });
   results.innerHTML = matches.length
-    ? matches.map(({ name, detail, initials }) => `<article class="champion-result"><span aria-hidden="true">${initials}</span><div><strong>${name}</strong><small>${detail}</small></div><button type="button" data-connect="${name}">Say hello</button></article>`).join('')
+    ? matches.map(({ name, detail, initials }) => `<article class="champion-result"><span class="champion-result-avatar" aria-hidden="true">${initials}</span><div class="champion-result-profile"><strong>${name}</strong><small>${detail}</small></div><div class="champion-result-actions"><button type="button" data-care-points="${name}">♡ Send 5 care points</button><button type="button" data-share-pets="${name}">🐾 Share pet collection</button></div></article>`).join('')
     : '<p class="champion-results-empty">No matching Champions found. Try another name or interest.</p>';
+  results.hidden = false;
+  searchInput?.setAttribute('aria-expanded', 'true');
 }
 
 function renderChampionStrengths() {
@@ -548,6 +557,9 @@ destinationContent.addEventListener('submit', (event) => {
   const searchInput = event.target.querySelector('#champion-search-input');
   renderChampionResults(searchInput?.value || '');
   if (searchInput?.value.trim()) awardParticipationXp('community:search', 2, 'Community explored');
+});
+destinationContent.addEventListener('input', (event) => {
+  if (event.target.id === 'champion-search-input') renderChampionResults(event.target.value);
 });
 destinationContent.addEventListener('click', (event) => {
   const learningPath = event.target.closest('[data-learning-path]');
@@ -712,9 +724,18 @@ destinationContent.addEventListener('click', (event) => {
     destinationContent.scrollTop = 0;
     return;
   }
-  const connectButton = event.target.closest('[data-connect]');
-  if (connectButton) {
-    showToast(`Hello request ready for ${connectButton.dataset.connect}`);
+  const carePointsButton = event.target.closest('[data-care-points]');
+  if (carePointsButton) {
+    carePointsButton.disabled = true;
+    carePointsButton.textContent = 'Care points sent ✓';
+    showToast(`5 care points sent to ${carePointsButton.dataset.carePoints} 💗`);
+    return;
+  }
+  const sharePetsButton = event.target.closest('[data-share-pets]');
+  if (sharePetsButton) {
+    sharePetsButton.disabled = true;
+    sharePetsButton.textContent = 'Pet collection shared ✓';
+    showToast(`Evan’s pet collection shared with ${sharePetsButton.dataset.sharePets} 🐾`);
     return;
   }
   const eventButton = event.target.closest('[data-event]');
