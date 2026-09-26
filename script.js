@@ -38,6 +38,7 @@ let weeklyGoal = 3;
 let savedPatientId = '';
 let toastTimer;
 let speechRecognition = null;
+let voiceStartPending = false;
 let recordingTimer = null;
 let voiceTranscript = '';
 let voiceFinalTranscript = '';
@@ -1342,6 +1343,7 @@ function resetVoiceRecorder() {
   window.clearTimeout(recordingTimer);
   recordingTimer = null;
   speechRecognition = null;
+  voiceStartPending = false;
   voiceButton.classList.remove('is-recording');
   voiceButton.setAttribute('aria-pressed', 'false');
   voiceButton.setAttribute('aria-label', 'Record a voice note');
@@ -1353,6 +1355,7 @@ function resetVoiceRecorder() {
   const waitingForReply = chatForm.dataset.pending === 'true';
   sendButton.disabled = waitingForReply;
   photoButton.disabled = waitingForReply;
+  voiceButton.disabled = waitingForReply;
 }
 
 function showMediaError(message) {
@@ -1363,6 +1366,42 @@ function showMediaError(message) {
 
 function normaliseVoiceTranscript(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+async function confirmMicrophoneAccess() {
+  if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    const error = new Error('Voice transcription requires a secure connection.');
+    error.code = 'insecure-context';
+    throw error;
+  }
+
+  // SpeechRecognition requests its own permission, but an explicit microphone
+  // check gives consistent permission behaviour and actionable errors on mobile.
+  if (!navigator.mediaDevices?.getUserMedia) return;
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  stream.getTracks().forEach((track) => track.stop());
+}
+
+function voiceErrorMessage(errorCode) {
+  if (['not-allowed', 'service-not-allowed', 'permission-denied'].includes(errorCode)) {
+    return 'Microphone access is blocked. Allow microphone access for this site, then try again.';
+  }
+  if (errorCode === 'audio-capture') {
+    return 'No working microphone was found. Check your microphone and try again.';
+  }
+  if (errorCode === 'network') {
+    return 'The browser’s speech service could not connect. Open HEARD directly in Chrome or Safari and try again.';
+  }
+  if (errorCode === 'language-not-supported') {
+    return 'This browser could not transcribe the selected language. Try Chrome or Safari, or use your keyboard microphone.';
+  }
+  if (errorCode === 'insecure-context') {
+    return 'Voice transcription only works on the secure HEARD site or localhost.';
+  }
+  if (errorCode === 'no-speech') {
+    return 'I could not hear any words. Try again and speak after the microphone turns red.';
+  }
+  return 'The voice note could not be transcribed. Try again, or use the microphone on your phone keyboard.';
 }
 
 function finishVoiceTranscription() {
@@ -1379,12 +1418,7 @@ function finishVoiceTranscription() {
   // network/audio error. A partial editable transcript is still useful.
   if (!transcript && recognitionError) {
     messageInput.value = draft;
-    const message = ['not-allowed', 'service-not-allowed'].includes(recognitionError)
-      ? 'Microphone access was unavailable. Please allow access and try again.'
-      : recognitionError === 'no-speech'
-        ? 'I could not hear any words. Please try the voice note again.'
-        : 'The voice note could not be transcribed. Please try again.';
-    showMediaError(message);
+    showMediaError(voiceErrorMessage(recognitionError));
     return;
   }
 
@@ -1407,23 +1441,33 @@ async function startVoiceRecording() {
     showToast('Send or remove the attached photo first');
     return;
   }
-  if (chatForm.dataset.pending === 'true' || !getSavedPatientRecord()) return;
+  if (voiceStartPending || chatForm.dataset.pending === 'true' || !getSavedPatientRecord()) return;
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    showMediaError('Voice transcription is not supported in this browser. Please use Chrome or type your entry.');
+    showMediaError('This browser does not support live transcription. Open HEARD directly in Chrome or Safari, or use your phone keyboard microphone.');
     return;
   }
 
   try {
+    voiceStartPending = true;
+    voiceButton.disabled = true;
+    voiceButton.setAttribute('aria-label', 'Preparing microphone');
+    showToast('Preparing microphone…');
+    await confirmMicrophoneAccess();
+
     const recognition = new SpeechRecognition();
     speechRecognition = recognition;
+    voiceStartPending = false;
     voiceTranscript = '';
     voiceFinalTranscript = '';
     voiceDraftText = messageInput.value;
     voiceRecognitionError = '';
     recognition.lang = navigator.language || 'en-SG';
-    recognition.continuous = true;
+    // A single utterance is substantially more reliable on Safari/iOS and
+    // Chromium mobile. The browser finishes after a natural pause, leaving the
+    // transcript in the composer for review before the user taps Send.
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
@@ -1444,6 +1488,10 @@ async function startVoiceRecording() {
       messageInput.value = normaliseVoiceTranscript(`${voiceDraftText} ${voiceTranscript}`);
     });
 
+    recognition.addEventListener('nomatch', () => {
+      voiceRecognitionError = 'no-speech';
+    });
+
     recognition.addEventListener('error', (event) => {
       voiceRecognitionError = event.error || 'recognition-error';
     });
@@ -1455,19 +1503,28 @@ async function startVoiceRecording() {
     recognition.start();
     sendButton.disabled = true;
     photoButton.disabled = true;
+    voiceButton.disabled = false;
     voiceButton.classList.add('is-recording');
     voiceButton.setAttribute('aria-pressed', 'true');
     voiceButton.setAttribute('aria-label', 'Stop and transcribe voice note');
     messageInput.placeholder = 'Listening… your words will appear here';
-    showToast('Listening… tap the microphone when you finish');
+    showToast('Listening… speak now, then pause or tap the microphone');
     recordingTimer = window.setTimeout(() => speechRecognition?.stop(), maxVoiceDurationMs);
-  } catch {
+  } catch (error) {
+    const errorCode = error?.code === 'insecure-context'
+      ? error.code
+      : ['NotAllowedError', 'SecurityError'].includes(error?.name)
+        ? 'permission-denied'
+        : error?.name === 'NotFoundError'
+          ? 'audio-capture'
+          : 'recognition-error';
     resetVoiceRecorder();
-    showMediaError('Microphone access was unavailable. Please allow access and try again.');
+    showMediaError(voiceErrorMessage(errorCode));
   }
 }
 
 voiceButton.addEventListener('click', () => {
+  if (voiceStartPending) return;
   if (speechRecognition) {
     window.clearTimeout(recordingTimer);
     recordingTimer = null;
