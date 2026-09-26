@@ -428,10 +428,16 @@ function showLearningDiscovery(key) {
 }
 
 const communityChampions = Object.freeze([
-  { name: 'Amina', detail: 'Food ideas · school life', initials: 'AM' },
-  { name: 'Leo', detail: 'Sports · staying active', initials: 'LE' },
-  { name: 'Maya', detail: 'Newly diagnosed · art', initials: 'MY' },
-  { name: 'Noah', detail: 'Medicine routines · gaming', initials: 'NO' }
+  { name: 'Aarav Mehta', detail: 'Gaming · medicine routines', initials: 'AM' },
+  { name: 'Ananya Rao', detail: 'Art · school life', initials: 'AR' },
+  { name: 'Ishaan Nair', detail: 'Football · staying active', initials: 'IN' },
+  { name: 'Priya Shah', detail: 'Food ideas · travelling', initials: 'PS' },
+  { name: 'Kavya Iyer', detail: 'Music · newly diagnosed', initials: 'KI' },
+  { name: 'Chen Wei', detail: 'Cycling · work life', initials: 'CW' },
+  { name: 'Lin Jia Yi', detail: 'Cooking · food confidence', initials: 'LJ' },
+  { name: 'Zhang Ming Hao', detail: 'Basketball · clinic questions', initials: 'ZM' },
+  { name: 'Liu Xin Yi', detail: 'Books · managing fatigue', initials: 'LX' },
+  { name: 'Wang Jun Jie', detail: 'Photography · travel planning', initials: 'WJ' }
 ]);
 
 const championStrengths = Object.freeze([
@@ -474,7 +480,7 @@ function renderCommunityHome() {
         <input id="champion-search-input" type="search" autocomplete="off" placeholder="Search by Champion name or interest" />
         <button type="submit">Search</button>
       </form>
-      <p class="community-search-note">Only Champions who choose to be discoverable appear here. <strong>Explore once today · +2 XP</strong></p>
+      <p class="community-search-note">Demo profiles for this prototype. In the live app, only Champions who choose to be discoverable will appear. <strong>Explore once today · +2 XP</strong></p>
       <div class="champion-results" id="champion-results" aria-live="polite"></div>
     </section>
 
@@ -484,17 +490,20 @@ function renderCommunityHome() {
       <article class="event-card"><time datetime="2026-10-24"><strong>24</strong><span>OCT</span></time><div><span class="event-type event-type--mint">CHAMPION MEET-UP</span><span class="event-xp">+3 XP</span><h4>Young Champions Hangout</h4><p>Games, stories and a relaxed space to meet others.</p></div><button type="button" data-event="Young Champions Hangout" aria-label="View Young Champions Hangout">›</button></article>
       <article class="event-card"><time datetime="2026-11-07"><strong>07</strong><span>NOV</span></time><div><span class="event-type">CCSS TALK</span><span class="event-xp">+3 XP</span><h4>Getting ready for clinic</h4><p>Build confidence asking questions at appointments.</p></div><button type="button" data-event="Getting ready for clinic" aria-label="View Getting ready for clinic">›</button></article>
     </section>`;
+  renderChampionResults();
 }
 
 function renderChampionResults(query = '') {
   const results = destinationContent.querySelector('#champion-results');
   if (!results) return;
   const cleanQuery = query.trim().toLocaleLowerCase();
-  if (!cleanQuery) {
-    results.innerHTML = '<p class="champion-results-empty">Try a name or an interest such as “art” or “school”.</p>';
-    return;
-  }
-  const matches = communityChampions.filter(({ name, detail }) => `${name} ${detail}`.toLocaleLowerCase().includes(cleanQuery));
+  const queryTerms = cleanQuery.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const matches = cleanQuery
+    ? communityChampions.filter(({ name, detail }) => {
+        const profileTerms = `${name} ${detail}`.toLocaleLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+        return queryTerms.every((term) => profileTerms.some((profileTerm) => profileTerm.startsWith(term)));
+      })
+    : communityChampions;
   results.innerHTML = matches.length
     ? matches.map(({ name, detail, initials }) => `<article class="champion-result"><span aria-hidden="true">${initials}</span><div><strong>${name}</strong><small>${detail}</small></div><button type="button" data-connect="${name}">Say hello</button></article>`).join('')
     : '<p class="champion-results-empty">No matching Champions found. Try another name or interest.</p>';
