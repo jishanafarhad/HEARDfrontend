@@ -1533,7 +1533,9 @@ function renderWeeklyTracker() {
   weeklyGoal = selectedGoal.goal;
   weeklyCount.textContent = weeklyCheckIns;
   weeklyGoalDisplay.textContent = weeklyGoal;
-  checkInPeriod.textContent = selectedGoal.period === 'month' ? 'MONTHLY CHECK-INS' : 'WEEKLY CHECK-INS';
+  // A non-breaking hyphen keeps CHECK-INS together on the narrow room rail,
+  // producing a clean two-line label instead of an orphaned “INS”.
+  checkInPeriod.textContent = selectedGoal.period === 'month' ? 'MONTHLY CHECK‑INS' : 'WEEKLY CHECK‑INS';
   weeklyDotsContainer.replaceChildren();
 
   for (let index = 0; index < weeklyGoal; index += 1) {
@@ -1695,7 +1697,7 @@ function statusCssName(status) {
 }
 
 function entryTypeIcon(type) {
-  return { REFLECT: '💬', TOILET: '●', FOOD: '🍽', DOCTOR_APPOINTMENT: '◆' }[String(type).toUpperCase()] || '•';
+  return { REFLECT: '💬', TOILET: '●', FOOD: '🍽', DOCTOR_APPOINTMENT: '🩺' }[String(type).toUpperCase()] || '•';
 }
 
 function entryTypeLabel(type) {
@@ -3290,7 +3292,7 @@ function openPainSheet() {
   ['top of tummy','right side','around belly button','left side','low down','bottom','head'].forEach((zone)=>body.append(toggleButton(zone,zone,locations)));
   const bodySection=document.createElement('section');bodySection.className='sheet-question sheet-question--optional';
   const bodyTitle=document.createElement('h3');bodyTitle.textContent='Where does it hurt?';bodySection.append(bodyTitle,body);
-  const faces=document.createElement('div');faces.className='choice-set';
+  const faces=document.createElement('div');faces.className='choice-set pain-face-set';
   const confirm=confirmGameButton('Save response ⭐ +10',()=>score!==null?{tile:'pain',score,scale:'fps_r',locations:[...locations],timing:[...timing]}:null);
   [['No hurt',0],['Hurts a little',2],['Hurts a bit more',4],['Hurts even more',6],['Hurts a lot',8],['Hurts worst',10]].forEach(([label,value],index)=>{
     const button=choiceButton(label,String(value),faces,(chosen)=>{score=Number(chosen);confirm.disabled=false;});
