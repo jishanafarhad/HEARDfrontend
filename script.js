@@ -32,6 +32,7 @@ const menu = document.querySelector('#menu');
 const menuButton = document.querySelector('#menu-button');
 const toast = document.querySelector('#toast');
 const gameTiles = [...document.querySelectorAll('[data-game-tile]')];
+const isCaregiverView = document.body.dataset.appRole === 'caregiver';
 
 let activeMode = 'chat';
 let weeklyCheckIns = 2;
@@ -3137,8 +3138,8 @@ function updatePatientSummary(name, condition, age = '') {
   const displayName = name || 'Evan Koh';
   const displayCondition = conditionLabels[condition] || condition || 'Your IBD Companion';
   patientSummary.textContent = displayName;
-  championName.textContent = displayName;
-  championCondition.textContent = displayCondition;
+  championName.textContent = isCaregiverView ? 'Caregiver' : displayName;
+  championCondition.textContent = isCaregiverView ? `Supporting ${displayName}` : displayCondition;
   caregiverIntro.textContent = `Add the people ${displayName} trusts to help with care.`;
   profilePrivacyNote.textContent = `Saved securely to ${displayName}’s Champion profile.`;
 }
@@ -3550,7 +3551,7 @@ function confirmGameButton(label, getPayload) {
 }
 
 function openWellbeingSheet() {
-  sheetHeading('Core Power', 'Check your energy today and how you slept last night.');
+  sheetHeading('Core Power', isCaregiverView ? 'Check Evan’s energy today and how Evan slept last night.' : 'Check your energy today and how you slept last night.');
   let energy = '';
   let sleep = '';
   let sleepDuration = '';
@@ -3561,7 +3562,7 @@ function openWellbeingSheet() {
   const updateConfirm = () => { confirm.disabled = !(energy && sleep && sleepDuration); };
 
   const energySection = document.createElement('section'); energySection.className = 'sheet-question';
-  const energyTitle = document.createElement('h3'); energyTitle.textContent = 'How is your energy today?';
+  const energyTitle = document.createElement('h3'); energyTitle.textContent = isCaregiverView ? 'How is Evan’s energy today?' : 'How is your energy today?';
   const energyChoices = document.createElement('div'); energyChoices.className = 'choice-set choice-set--three';
   [['🔋 Full','good'],['🪫 Half','ok'],['🪫 Empty','low']].forEach(([label,value]) => {
     energyChoices.append(choiceButton(label, value, energyChoices, (chosen) => { energy = chosen; updateConfirm(); }));
@@ -3569,7 +3570,7 @@ function openWellbeingSheet() {
   energySection.append(energyTitle, energyChoices);
 
   const sleepSection = document.createElement('section'); sleepSection.className = 'sheet-question';
-  const sleepTitle = document.createElement('h3'); sleepTitle.textContent = 'How was your sleep?';
+  const sleepTitle = document.createElement('h3'); sleepTitle.textContent = isCaregiverView ? 'How was Evan’s sleep?' : 'How was your sleep?';
   const sleepChoices = document.createElement('div'); sleepChoices.className = 'choice-set sleep-quality-set';
   [['Very poor','very_poor'],['Poor','poor'],['Fair','fair'],['Good','good'],['Very good','very_good']].forEach(([label,value]) => {
     sleepChoices.append(choiceButton(label, value, sleepChoices, (chosen) => { sleep = chosen; updateConfirm(); }));
@@ -3577,7 +3578,7 @@ function openWellbeingSheet() {
   sleepSection.append(sleepTitle, sleepChoices);
 
   const durationSection = document.createElement('section'); durationSection.className = 'sheet-question';
-  const durationTitle = document.createElement('h3'); durationTitle.textContent = 'How long did you sleep?';
+  const durationTitle = document.createElement('h3'); durationTitle.textContent = isCaregiverView ? 'How long did Evan sleep?' : 'How long did you sleep?';
   const durationChoices = document.createElement('div'); durationChoices.className = 'choice-set sleep-duration-set';
   [['Short sleep (< 6 hours)','short'],['Normal sleep (6–8 hours)','normal'],['Long sleep (9+ hours)','long']].forEach(([label,value]) => {
     durationChoices.append(choiceButton(label, value, durationChoices, (chosen) => { sleepDuration = chosen; updateConfirm(); }));
@@ -3585,7 +3586,7 @@ function openWellbeingSheet() {
   durationSection.append(durationTitle, durationChoices);
 
   const wakeSection = document.createElement('section'); wakeSection.className = 'sheet-question sheet-question--optional';
-  const wakeTitle = document.createElement('h3'); wakeTitle.textContent = 'Did you wake to use the toilet?';
+  const wakeTitle = document.createElement('h3'); wakeTitle.textContent = isCaregiverView ? 'Did Evan wake to use the toilet?' : 'Did you wake to use the toilet?';
   const wakeChoices = document.createElement('div'); wakeChoices.className = 'choice-set choice-set--four';
   [['No',0],['Once',1],['Twice',2],['3+',3]].forEach(([label,value]) => {
     wakeChoices.append(choiceButton(label, String(value), wakeChoices, (chosen) => { wokeToGo = Number(chosen); }));
@@ -3682,14 +3683,14 @@ function openMedsSheet() {
   sheetHeading('Daily Pill Drop 💊', 'A quick check-in about today’s prescribed IBD medications.');
   const status = document.createElement('p'); status.className = 'medicine-save-state'; status.setAttribute('role', 'status');
   const question = document.createElement('section'); question.className = 'sheet-question medicine-primary-question';
-  const title = document.createElement('h3'); title.textContent = 'Did you take your prescribed IBD medications today?';
+  const title = document.createElement('h3'); title.textContent = isCaregiverView ? 'Did Evan take the prescribed IBD medications today?' : 'Did you take your prescribed IBD medications today?';
   const choices = document.createElement('div'); choices.className = 'medicine-primary-actions';
   const no = document.createElement('button'); no.type = 'button'; no.className = 'medicine-primary-button medicine-primary-button--no'; no.textContent = 'MISSED MY DOSE 🛑';
   const yes = document.createElement('button'); yes.type = 'button'; yes.className = 'medicine-primary-button medicine-primary-button--yes'; yes.textContent = 'YES, ALL TAKEN 👍';
   choices.append(no, yes); question.append(title, choices);
 
   const reasonSection = document.createElement('section'); reasonSection.className = 'sheet-question medicine-reasons'; reasonSection.hidden = true;
-  const reasonTitle = document.createElement('h3'); reasonTitle.textContent = 'Understood. Health schedules change. What got in the way today?';
+  const reasonTitle = document.createElement('h3'); reasonTitle.textContent = isCaregiverView ? 'Understood. Health schedules change. What got in the way for Evan today?' : 'Understood. Health schedules change. What got in the way today?';
   const reasons = document.createElement('div'); reasons.className = 'medicine-reason-list';
   const reasonOptions = [
     ['Simply forgot / Lost track of time', 'forgot'],
@@ -3732,12 +3733,12 @@ function openMedsSheet() {
 }
 
 function openPainSheet() {
-  sheetHeading('Pain Detective', 'Choose a face or any pain score from 0 to 10, then add where and when it hurts.');
+  sheetHeading('Pain Detective', isCaregiverView ? 'Choose Evan’s pain score from 0 to 10, then add where and when it hurts.' : 'Choose a face or any pain score from 0 to 10, then add where and when it hurts.');
   const locations=new Set();const timing=new Set();let score=null;
   const body=document.createElement('div');body.className='body-map';
   ['top of tummy','right side','around belly button','left side','low down','bottom','head'].forEach((zone)=>body.append(toggleButton(zone,zone,locations)));
   const bodySection=document.createElement('section');bodySection.className='sheet-question sheet-question--optional';
-  const bodyTitle=document.createElement('h3');bodyTitle.textContent='Where does it hurt?';bodySection.append(bodyTitle,body);
+  const bodyTitle=document.createElement('h3');bodyTitle.textContent=isCaregiverView?'Where does Evan hurt?':'Where does it hurt?';bodySection.append(bodyTitle,body);
   const scores=document.createElement('div');scores.className='choice-set pain-score-set';
   const faceGuide=document.createElement('div');faceGuide.className='pain-face-guide';
   const scoreButtons=new Map();
@@ -3797,6 +3798,7 @@ function closeObjectSheet() {
 }
 
 function gamePayloadSentence(payload) {
+  if (isCaregiverView) return caregiverGamePayloadSentence(payload);
   if (payload.tile === 'wellbeing') {
     const waking = payload.woke_to_go == null ? '' : payload.woke_to_go === 0 ? ' I slept through without waking to use the toilet.' : ` I woke ${payload.woke_to_go} ${payload.woke_to_go === 1 ? 'time' : 'times'} to use the toilet.`;
     const duration = { short:'less than 6 hours', normal:'6 to 8 hours', long:'9 hours or more' }[payload.sleep_duration];
@@ -3848,6 +3850,34 @@ function gamePayloadSentence(payload) {
     return `My pain is ${payload.score} out of 10.${location}${timing}`;
   }
   return 'I completed a structured check-in response.';
+}
+
+function caregiverGamePayloadSentence(payload) {
+  if (payload.tile === 'wellbeing') {
+    const waking = payload.woke_to_go == null ? '' : payload.woke_to_go === 0 ? ' Evan slept through without waking to use the toilet.' : ` Evan woke ${payload.woke_to_go} ${payload.woke_to_go === 1 ? 'time' : 'times'} to use the toilet.`;
+    const duration = { short:'less than 6 hours', normal:'6 to 8 hours', long:'9 hours or more' }[payload.sleep_duration];
+    return `Evan’s energy today is ${payload.energy}, and Evan’s sleep last night was ${String(payload.sleep).replaceAll('_', ' ')}.${duration ? ` Evan slept for ${duration}.` : ''}${waking}`;
+  }
+  if (payload.tile === 'stools') {
+    const details = [`Evan’s stool was Bristol type ${payload.bristol}`];
+    const bloodPhrase = { none:'there was no blood', small_streaks:'there were small streaks of blood', mixed:'there was blood mixed in', mostly:'what Evan passed was mostly blood' }[payload.blood];
+    if (bloodPhrase) details.push(bloodPhrase);
+    if (payload.urgency) details.push('Evan had sudden urgency');
+    if (payload.couldnt_make_it) details.push("Evan couldn’t make it to the toilet in time");
+    return `${details.join('. ')}.`;
+  }
+  if (payload.tile === 'meds') {
+    if (payload.status === 'taken') return 'Evan took all prescribed IBD medications today.';
+    const reasonPhrases = { forgot:' because Evan simply forgot or lost track of time', felt_well:' because Evan was feeling completely fine or well today', side_effects:' because Evan was experiencing unpleasant side effects', ran_out:' because of a pharmacy stock delay or the refill ran out', swallowing_or_nausea:' because Evan had difficulty swallowing or active nausea' };
+    return `Evan did not take the prescribed IBD medications today${reasonPhrases[payload.reason] || ''}.`;
+  }
+  if (payload.tile === 'pain') {
+    const location = payload.locations.length ? ` The pain is in Evan’s ${payload.locations.join(' and ')}.` : '';
+    const timingSentences = { after_eating:'It happens after eating.', cramp_before_going:'Evan gets a cramp before going.', better_after_going:'It feels better after going.', woke_me:'It woke Evan during the night.', disrupted_school_work:'It disrupted school or work.', all_day:'It lasted all day.', comes_in_waves:'It comes in waves.' };
+    const timing = payload.timing.length ? ` ${payload.timing.map((item) => timingSentences[item] || '').filter(Boolean).join(' ')}` : '';
+    return `Evan’s pain is ${payload.score} out of 10.${location}${timing}`;
+  }
+  return `Evan completed the ${String(payload.tile || 'structured').replaceAll('_', ' ')} check-in.`;
 }
 
 async function sendGamePayload(payload) {
@@ -3903,6 +3933,12 @@ document.addEventListener('keydown',(event)=>{ if(event.key==='Escape'&&!objectS
 /* ---------- Initial state ---------- */
 document.querySelector('#status-time').textContent = formatTime();
 loadPatientSettings();
+if (isCaregiverView) {
+  document.querySelector('.quest-heading h2').textContent = 'Evan’s Check-in';
+  const welcome = document.querySelector('.message--companion .bubble p');
+  if (welcome) welcome.innerHTML = 'Hi 👋 I’m HEARD, your caregiver companion.<br />You can check in for Evan or ask me a question.';
+  messageInput.placeholder = 'Message HEARD about Evan…';
+}
 saveJournalEntries();
 renderWeeklyTracker();
 renderRoomState();
