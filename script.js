@@ -14,6 +14,7 @@ const learnButton = document.querySelector('#learn-button');
 const unlockOverlay = document.querySelector('#unlock-overlay');
 const unlockReveal = document.querySelector('#unlock-reveal');
 const unlockSkip = document.querySelector('#unlock-skip');
+const secretUnlockTrigger = document.querySelector('#secret-unlock-trigger');
 const destinationPage = document.querySelector('#destination-page');
 const destinationBack = document.querySelector('#destination-back');
 const destinationKicker = document.querySelector('#destination-kicker');
@@ -800,6 +801,7 @@ function closeSecretUnlock() {
 }
 
 unlockSkip.addEventListener('click', closeSecretUnlock);
+secretUnlockTrigger.addEventListener('click', openSecretUnlock);
 document.addEventListener('keydown', (event) => {
   if (event.altKey && event.shiftKey && event.code === 'KeyB') {
     event.preventDefault();

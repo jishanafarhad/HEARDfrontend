@@ -146,6 +146,20 @@ button { -webkit-tap-highlight-color: transparent; }
 /* ---------- Floating room widgets ---------- */
 .room-widgets { position: absolute; z-index: 12; inset: 0; pointer-events: none; }
 .app:not(.is-game-mode) .room-widgets { clip-path: inset(0 0 calc(100% - var(--chat-widget-cutoff)) 0); }
+.secret-unlock-trigger {
+  position:absolute;
+  top:13.1%;
+  left:68.2%;
+  width:11.2%;
+  height:7.4%;
+  padding:0;
+  border:0;
+  border-radius:4px;
+  background:transparent;
+  opacity:0;
+  pointer-events:auto;
+  cursor:pointer;
+}
 .bed-mumurak {
   position:absolute;
   top:20.4%;
