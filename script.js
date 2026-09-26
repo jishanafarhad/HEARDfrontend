@@ -3933,7 +3933,8 @@ objectSheetBackdrop.addEventListener('click',closeObjectSheet);
 document.addEventListener('keydown',(event)=>{ if(event.key==='Escape'&&!objectSheet.hidden) closeObjectSheet(); });
 
 /* ---------- Initial state ---------- */
-document.querySelector('#status-time').textContent = formatTime();
+const statusTime = document.querySelector('#status-time');
+if (statusTime) statusTime.textContent = formatTime();
 loadPatientSettings();
 if (isCaregiverView) {
   document.querySelector('.quest-heading h2').textContent = 'Evan’s Check-in';
