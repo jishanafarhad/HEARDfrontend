@@ -797,10 +797,9 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .bristol-choice { display:grid; grid-template-columns:minmax(54px,7cqw) 1fr; align-items:center; gap:1cqw; min-height:9.6cqw; text-align:left; }
 .bristol-choice img { width:100%; aspect-ratio:1.28; object-fit:contain; border-radius:9px; background:#d6ecf5; }
 .bristol-choice span { line-height:1.2; }
-.pain-face-choice { min-height:10cqw; padding:.65cqw; }
-.pain-face-set { grid-template-columns:repeat(3,minmax(0,1fr)); }
-.pain-face-choice svg { display:block; width:min(7cqw,58px); margin:auto; }
-.pain-score-value { display:block; margin-top:.35cqw; color:#173f68; font-size:clamp(14px,2cqw,18px); font-weight:950; line-height:1; }
+.pain-score-set { grid-template-columns:repeat(6,minmax(0,1fr)); gap:clamp(7px,.8cqw,10px); }
+.pain-score-choice { display:grid; place-items:center; min-height:clamp(48px,6.8cqw,62px); padding:.55cqw; border-radius:13px; font-size:clamp(16px,2.3cqw,21px); font-weight:950; }
+.pain-scale-labels { display:flex; justify-content:space-between; gap:1cqw; margin-top:1cqw; color:#5c7488; font-size:clamp(10px,1.25cqw,12px); font-weight:850; }
 .sheet-preview { display:grid; place-items:center; min-height:10cqw; margin-bottom:1.2cqw; border:2px solid #9ec2d2; border-radius:13px; background:#dff3ff; font-size:5cqw; }.sheet-preview[data-weather="rainy"],.sheet-preview[data-weather="stormy"] { background:#728ba0; }.sheet-preview[data-weather="cloudy"] { background:#c1d1da; }
 .toggle-chips { display:flex; flex-wrap:wrap; gap:.7cqw; margin-top:1.2cqw; }.toggle-chips button { padding:.7cqw 1cqw; color:#254e6b; border:1px solid #7ca4bc; border-radius:999px; background:#f9f6e8; cursor:pointer; }.toggle-chips button.is-selected { color:white; background:#147e9e; }
 .save-game-response { width:100%; min-height:46px; margin-top:1.6cqw; padding:1.2cqw; color:white; border:2px solid #63e4f5; border-radius:14px; background:linear-gradient(145deg,#188fd4,#0965ae); box-shadow:0 4px 0 rgba(7,70,125,.32); cursor:pointer; font-weight:900; }.save-game-response:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }
