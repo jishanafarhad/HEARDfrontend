@@ -3303,12 +3303,12 @@ function confirmGameButton(label, getPayload) {
 }
 
 function openWellbeingSheet() {
-  sheetHeading('Weather Forecast', 'Check your energy today and how you slept last night.');
+  sheetHeading('Core Power', 'Check your energy today and how you slept last night.');
   let energy = '';
   let sleep = '';
   let sleepDuration = '';
   let wokeToGo = null;
-  const confirm = confirmGameButton('Save Weather Forecast ⭐ +10', () => (
+  const confirm = confirmGameButton('Save Core Power ⭐ +10', () => (
     energy && sleep && sleepDuration ? { tile:'wellbeing', energy, sleep, sleep_duration:sleepDuration, woke_to_go:wokeToGo, tags:[] } : null
   ));
   const updateConfirm = () => { confirm.disabled = !(energy && sleep && sleepDuration); };
