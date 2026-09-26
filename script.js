@@ -64,9 +64,6 @@ const journalDailySummaryUrl = `${journalApiBase}/api/patient/daily-summary`;
 const journalMonthlySummaryUrl = `${journalApiBase}/api/patient/monthly-summary`;
 const journalMediaBaseUrl = `${journalApiBase}/`;
 const shareDestinationUrl = 'https://jishanafarhad.github.io/HEARDHackitRx/';
-// Keep backend routes in one place; update these two constants if Django exposes different profile paths.
-const profileEndpoint = 'https://unfactional-chaya-remoter.ngrok-free.dev/api/patient/profile/update';
-const profileInterpretEndpoint = 'https://unfactional-chaya-remoter.ngrok-free.dev/api/patient/profile/interpret';
 const chatResponseBy = 'HumanMessage';
 const photoUploadField = 'Image';
 const foodImageConversationText = 'Please log this food image for me';
@@ -2708,39 +2705,49 @@ const patientConditionInput = document.querySelector('#patient-condition');
 const conditionDetails = document.querySelector('#condition-details');
 const conditionLocationInput = document.querySelector('#condition-location');
 const conditionNarrowingInput = document.querySelector('#condition-narrowing');
+const conditionNarrowingSizeRow = document.querySelector('#narrowing-size-row');
+const conditionNarrowingSizeInput = document.querySelector('#condition-narrowing-size');
+const conditionNarrowingUnitInput = document.querySelector('#condition-narrowing-unit');
 const conditionSurgeryInput = document.querySelector('#condition-surgery');
-const patientStatusInput = document.querySelector('#patient-status');
 const allergiesInput = document.querySelector('#patient-allergies');
-const medicinesInput = document.querySelector('#patient-medicines');
-const allergyConfirmations = document.querySelector('#allergy-confirmations');
-const medicineConfirmations = document.querySelector('#medicine-confirmations');
+const medicineOptions = document.querySelector('#medicine-options');
+const medicineSummary = document.querySelector('#medicine-summary');
+const dietSummary = document.querySelector('#diet-summary');
 const weeklyGoalInput = document.querySelector('#weekly-goal-input');
 const visibilityInput = document.querySelector('#profile-visibility');
 const visibilityHint = document.querySelector('#visibility-hint');
 const caregiverList = document.querySelector('#caregiver-list');
 const addCaregiverButton = document.querySelector('#add-caregiver');
 const caregiverCount = document.querySelector('#caregiver-count');
-const goalNudge = document.querySelector('#goal-nudge');
 const profileSaveResult = document.querySelector('#profile-save-result');
 const saveProfileButton = patientForm.querySelector('.save-profile');
 const patientSummary = document.querySelector('#patient-summary');
+const championName = document.querySelector('#champion-name');
+const championCondition = document.querySelector('#champion-condition');
+const pauseAppInput = document.querySelector('#pause-app');
+const caregiverIntro = document.querySelector('#caregiver-intro');
+const profilePrivacyNote = document.querySelector('#profile-privacy-note');
 const patientStorageKey = 'heard-patient-settings';
-let allergyCandidates = [];
-let medicineCandidates = [];
 let caregivers = [];
-let flareGoalNudgeDismissed = false;
 
-const conditionLabels = { UC: 'UC', "Crohn's": 'Crohn’s', 'Not classified': 'not classified', 'Not sure': 'not sure' };
+const conditionLabels = {
+  "Crohn's disease": 'Crohn’s Disease',
+  'Ulcerative colitis': 'Ulcerative Colitis',
+  'IBD unclassified': 'Inflammatory Bowel Disease Unclassified (IBD-U)'
+};
 const goalConfig = {
   weekly_1: { goal: 1, period: 'week' }, weekly_3: { goal: 3, period: 'week' }, weekly_5: { goal: 5, period: 'week' },
   monthly_2: { goal: 2, period: 'month' }, monthly_1: { goal: 1, period: 'month' }
 };
 
 function updatePatientSummary(name, condition, age = '') {
-  const details = [name || 'Evan'];
-  if (age !== '') details.push(`${age} years`);
-  if (condition) details.push(conditionLabels[condition] || condition);
-  patientSummary.textContent = details.join(' · ');
+  const displayName = name || 'Evan Koh';
+  const displayCondition = conditionLabels[condition] || condition || 'Your IBD Companion';
+  patientSummary.textContent = displayName;
+  championName.textContent = displayName;
+  championCondition.textContent = displayCondition;
+  caregiverIntro.textContent = `Add the people ${displayName} trusts to help with care.`;
+  profilePrivacyNote.textContent = `Saved securely to ${displayName}’s Champion profile.`;
 }
 
 function clinicLinkValue(...keys) {
@@ -2749,7 +2756,14 @@ function clinicLinkValue(...keys) {
 }
 
 function syncConditionDetails() {
-  conditionDetails.hidden = !["Crohn's", 'Not classified'].includes(patientConditionInput.value);
+  conditionDetails.hidden = !patientConditionInput.value;
+  syncNarrowingSize();
+}
+
+function syncNarrowingSize() {
+  const needsSize = !conditionDetails.hidden && conditionNarrowingInput.value === 'Yes';
+  conditionNarrowingSizeRow.hidden = !needsSize;
+  conditionNarrowingSizeInput.required = needsSize;
 }
 
 function syncAudienceAndVisibility() {
@@ -2771,14 +2785,14 @@ function renderCaregivers() {
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'remove-caregiver'; remove.setAttribute('aria-label', `Remove caregiver ${index + 1}`); remove.textContent = '×';
     remove.addEventListener('click', () => { caregivers.splice(index, 1); renderCaregivers(); });
     const nameLabel = document.createElement('label'); nameLabel.innerHTML = '<span>Name</span>';
-    const name = document.createElement('input'); name.type = 'text'; name.required = true; name.maxLength = 60; name.autocomplete = 'name'; name.placeholder = 'Caregiver name'; name.value = caregiver.name || '';
+    const name = document.createElement('input'); name.type = 'text'; name.maxLength = 60; name.autocomplete = 'name'; name.placeholder = 'Caregiver name'; name.value = caregiver.name || '';
     name.addEventListener('input', () => { caregivers[index].name = name.value; }); nameLabel.append(name);
     const relationshipLabel = document.createElement('label'); relationshipLabel.innerHTML = '<span>Relationship</span>';
     const relationship = document.createElement('select');
     ['', 'Parent', 'Guardian', 'Partner', 'Family member', 'Other'].forEach((value) => { const option=document.createElement('option'); option.value=value; option.textContent=value || 'Choose'; relationship.append(option); });
-    relationship.value = caregiver.relationship || ''; relationship.required = true; relationship.addEventListener('change', () => { caregivers[index].relationship = relationship.value; }); relationshipLabel.append(relationship);
+    relationship.value = caregiver.relationship || ''; relationship.addEventListener('change', () => { caregivers[index].relationship = relationship.value; }); relationshipLabel.append(relationship);
     const emailLabel = document.createElement('label'); emailLabel.innerHTML = '<span>Email for their account</span>';
-    const email = document.createElement('input'); email.type = 'email'; email.required = true; email.autocomplete = 'email'; email.placeholder = 'name@example.com'; email.value = caregiver.email || '';
+    const email = document.createElement('input'); email.type = 'email'; email.autocomplete = 'email'; email.placeholder = 'name@example.com'; email.value = caregiver.email || '';
     email.addEventListener('input', () => { caregivers[index].email = email.value; }); emailLabel.append(email);
     card.append(heading, remove, nameLabel, relationshipLabel, emailLabel); caregiverList.append(card);
   });
@@ -2801,106 +2815,35 @@ function setEatingPatterns(values = []) {
   document.querySelectorAll('#eating-patterns input').forEach((input) => {
     input.checked = values.includes(input.value);
   });
+  updateMultiSelectSummaries();
 }
 
-function fallbackInterpret(kind, text) {
-  const terms = text.split(/,|\band\b|\n/gi).map((term) => term.trim()).filter(Boolean);
-  if (kind === 'allergies') {
-    return terms.map((term) => {
-      const lower = term.toLowerCase();
-      if (/milk|dairy/.test(lower)) return { label: 'Milk protein', code: 'milk_protein', confirmed: false };
-      if (/shellfish|prawn|shrimp|crab|lobster/.test(lower)) return { label: 'Shellfish', code: 'shellfish', confirmed: false };
-      return { label: term.replace(/\b\w/g, (letter) => letter.toUpperCase()), code: lower.replace(/\W+/g, '_'), confirmed: false };
-    });
-  }
+function selectedMedicines() {
+  return [...medicineOptions.querySelectorAll('input:checked')].map((input) => input.value);
+}
 
-  const prescribed = /mesalazine|mesalamine|azathioprine|infliximab|adalimumab|ustekinumab|vedolizumab|prednisolone/i;
-  const supplement = /vitamin|iron|calcium|probiotic|supplement/i;
-  const tcm = /tcm|traditional chinese|herbal/i;
-  return terms.map((term) => {
-    const isNsaid = /ibuprofen|naproxen|diclofenac|aspirin/i.test(term);
-    let category = isNsaid ? 'OTC' : prescribed.test(term) ? 'prescribed' : supplement.test(term) ? 'supplement' : tcm.test(term) ? 'TCM' : 'unrecognised';
-    return { label: term, category, pharmacist: isNsaid, confirmed: false };
+function setSelectedMedicines(values = []) {
+  medicineOptions.querySelectorAll('input').forEach((input) => {
+    input.checked = values.includes(input.value);
   });
+  updateMultiSelectSummaries();
 }
 
-async function interpretProfileText(kind, text) {
-  try {
-    const response = await fetch(profileInterpretEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ patient_record: savedPatientId || null, field: kind, text })
-    });
-    if (!response.ok) throw new Error('Interpreter unavailable');
-    const data = await response.json();
-    const values = data.items || data[kind];
-    if (!Array.isArray(values)) throw new Error('Invalid interpreter response');
-    return values.map((item) => typeof item === 'string' ? { label: item, code: item.toLowerCase().replace(/\W+/g, '_'), confirmed: false } : { ...item, confirmed: false });
-  } catch {
-    // Deterministic fallback keeps confirmation gates safe when the normaliser is temporarily offline.
-    return fallbackInterpret(kind, text);
-  }
+function selectionSummary(values, emptyLabel) {
+  if (!values.length) return emptyLabel;
+  if (values.length === 1) return values[0];
+  return `${values.length} selected`;
 }
 
-function renderConfirmations(kind) {
-  const isAllergy = kind === 'allergies';
-  const container = isAllergy ? allergyConfirmations : medicineConfirmations;
-  const candidates = isAllergy ? allergyCandidates : medicineCandidates;
-  container.replaceChildren();
-  if (!candidates.length) return;
-
-  const prompt = document.createElement('p');
-  prompt.className = 'confirm-prompt';
-  prompt.textContent = isAllergy ? 'We read that as:' : 'Please confirm how we read these:';
-  container.append(prompt);
-
-  candidates.forEach((candidate, index) => {
-    const card = document.createElement('div');
-    card.className = 'confirm-card';
-    if (isAllergy && candidate.confirmed) card.classList.add('is-confirmed-allergy');
-    if (candidate.pharmacist) card.classList.add('is-pharmacist');
-    const category = !isAllergy ? `${candidate.category || 'unrecognised'}${candidate.pharmacist ? ' · pharmacist review' : ''}` : 'Right?';
-    const label = document.createElement('strong');
-    label.textContent = candidate.label;
-    const detail = document.createElement('small');
-    detail.textContent = category;
-    card.append(label, detail);
-    const actions = document.createElement('div');
-    actions.className = 'confirm-actions';
-    const yes = document.createElement('button');
-    yes.type = 'button';
-    yes.textContent = candidate.confirmed ? 'Confirmed ✓' : 'Yes';
-    yes.addEventListener('click', () => { candidates[index].confirmed = true; renderConfirmations(kind); });
-    const edit = document.createElement('button');
-    edit.type = 'button'; edit.textContent = 'Edit';
-    edit.addEventListener('click', () => {
-      candidates.splice(index, 1);
-      renderConfirmations(kind);
-      (isAllergy ? allergiesInput : medicinesInput).focus();
-    });
-    actions.append(yes, edit); card.append(actions); container.append(card);
-  });
+function updateMultiSelectSummaries() {
+  medicineSummary.textContent = selectionSummary(selectedMedicines(), 'Choose medicines');
+  dietSummary.textContent = selectionSummary(selectedEatingPatterns(), 'Choose diet options');
 }
 
-async function reviewProfileText(kind) {
-  const input = kind === 'allergies' ? allergiesInput : medicinesInput;
-  const button = document.querySelector(kind === 'allergies' ? '#review-allergies' : '#review-medicines');
-  const text = input.value.trim();
-  if (!text) {
-    if (kind === 'allergies') allergyCandidates = []; else medicineCandidates = [];
-    renderConfirmations(kind);
-    return;
-  }
-  button.disabled = true; button.textContent = 'Reading…';
-  const items = await interpretProfileText(kind, text);
-  if (kind === 'allergies') allergyCandidates = items; else medicineCandidates = items;
-  renderConfirmations(kind);
-  button.disabled = false; button.textContent = 'Review';
-}
-
-function syncGoalNudge() {
-  const isMonthly = weeklyGoalInput.value.startsWith('monthly_');
-  goalNudge.hidden = patientStatusInput.value !== 'Flaring' || !isMonthly || flareGoalNudgeDismissed;
+function syncPauseMode(showFeedback = false) {
+  document.querySelector('.app').classList.toggle('is-paused', pauseAppInput.checked);
+  pauseAppInput.closest('label')?.setAttribute('aria-label', pauseAppInput.checked ? 'App is paused' : 'Pause app');
+  if (showFeedback) showToast(pauseAppInput.checked ? 'HEARD app paused' : 'HEARD app resumed');
 }
 
 function applyGoalSetting(value) {
@@ -2923,144 +2866,158 @@ function loadPatientSettings() {
   patientIdInput.value = savedPatientId;
 
   if (!saved) {
-    patientNameInput.value = 'Evan';
+    patientNameInput.value = 'Evan Koh';
     caregivers = [];
     visibilityInput.value = clinicLinkValue('visibility') || 'just_me';
-    syncConditionDetails(); syncAudienceAndVisibility(); syncGoalNudge();
+    pauseAppInput.checked = false;
+    syncConditionDetails(); syncAudienceAndVisibility(); syncPauseMode();
     renderCaregivers();
-    updatePatientSummary('Evan', '', '');
+    updateMultiSelectSummaries();
+    updatePatientSummary('Evan Koh', '', '');
     applyGoalSetting('weekly_3');
     return;
   }
-  patientNameInput.value = !saved.name || saved.name === 'Shervin' ? 'Evan' : saved.name;
+  patientNameInput.value = !saved.name || saved.name === 'Shervin' || saved.name === 'Evan' ? 'Evan Koh' : saved.name;
   patientAgeInput.value = saved.age ?? '';
   const migratedCondition = {
-    'Ulcerative colitis': 'UC',
-    'Crohn’s disease': "Crohn's",
-    "Crohn's disease": "Crohn's",
-    'Indeterminate colitis': 'Not classified',
+    UC: 'Ulcerative colitis',
+    "Crohn's": "Crohn's disease",
+    'Crohn’s disease': "Crohn's disease",
+    'Not classified': 'IBD unclassified',
+    'Indeterminate colitis': 'IBD unclassified',
     'Not specified': ''
   }[saved.condition] ?? saved.condition ?? '';
   patientConditionInput.value = migratedCondition;
   conditionLocationInput.value = saved.condition_location || '';
   conditionNarrowingInput.value = saved.narrowing || '';
+  conditionNarrowingSizeInput.value = saved.narrowing_size ?? '';
+  conditionNarrowingUnitInput.value = saved.narrowing_unit || 'mm';
   conditionSurgeryInput.value = saved.surgery || '';
-  patientStatusInput.value = saved.status || '';
   allergiesInput.value = saved.allergies_text || '';
-  medicinesInput.value = saved.medicines_text || '';
-  allergyCandidates = Array.isArray(saved.allergies) ? saved.allergies : [];
-  medicineCandidates = Array.isArray(saved.medicines) ? saved.medicines : [];
+  const savedMedicines = Array.isArray(saved.medicine_names)
+    ? saved.medicine_names
+    : Array.isArray(saved.medicines)
+      ? saved.medicines.map((item) => typeof item === 'string' ? item : item.label).filter(Boolean)
+      : [];
+  setSelectedMedicines(savedMedicines);
   setEatingPatterns(saved.eating_patterns || []);
   const legacyGoal = Number(saved.weeklyGoal);
   const checkInGoal = saved.check_in_goal || (legacyGoal === 5 ? 'weekly_5' : legacyGoal === 1 ? 'weekly_1' : 'weekly_3');
   weeklyGoalInput.value = goalConfig[checkInGoal] ? checkInGoal : 'weekly_3';
   visibilityInput.value = clinicLinkValue('visibility') || saved.visibility || 'just_me';
-  flareGoalNudgeDismissed = Boolean(saved.monthly_flare_nudge_seen);
   caregivers = Array.isArray(saved.caregivers) ? saved.caregivers.slice(0, 2) : [];
-  syncConditionDetails(); syncAudienceAndVisibility(); syncGoalNudge();
-  renderConfirmations('allergies'); renderConfirmations('medicines');
+  pauseAppInput.checked = Boolean(saved.paused);
+  syncConditionDetails(); syncAudienceAndVisibility(); syncPauseMode();
   applyGoalSetting(weeklyGoalInput.value);
   renderCaregivers();
+  updateMultiSelectSummaries();
   updatePatientSummary(patientNameInput.value, migratedCondition, saved.age ?? '');
 }
 
-document.querySelector('#review-allergies').addEventListener('click', () => reviewProfileText('allergies'));
-document.querySelector('#review-medicines').addEventListener('click', () => reviewProfileText('medicines'));
-allergiesInput.addEventListener('input', () => { allergyCandidates = []; allergyConfirmations.replaceChildren(); });
-medicinesInput.addEventListener('input', () => { medicineCandidates = []; medicineConfirmations.replaceChildren(); });
-patientConditionInput.addEventListener('change', syncConditionDetails);
-patientAgeInput.addEventListener('input', syncAudienceAndVisibility);
-patientStatusInput.addEventListener('change', () => { flareGoalNudgeDismissed = false; syncGoalNudge(); });
-weeklyGoalInput.addEventListener('change', () => { flareGoalNudgeDismissed = false; syncGoalNudge(); applyGoalSetting(weeklyGoalInput.value); });
-goalNudge.addEventListener('click', (event) => {
-  const action = event.target.closest('[data-nudge]')?.dataset.nudge;
-  if (!action) return;
-  if (action === 'change') { weeklyGoalInput.value = 'weekly_3'; applyGoalSetting('weekly_3'); }
-  flareGoalNudgeDismissed = true; syncGoalNudge();
+patientNameInput.addEventListener('input', () => updatePatientSummary(patientNameInput.value.trim(), patientConditionInput.value, patientAgeInput.value));
+patientConditionInput.addEventListener('change', () => {
+  syncConditionDetails();
+  updatePatientSummary(patientNameInput.value.trim(), patientConditionInput.value, patientAgeInput.value);
 });
+conditionNarrowingInput.addEventListener('change', syncNarrowingSize);
+patientAgeInput.addEventListener('input', syncAudienceAndVisibility);
+weeklyGoalInput.addEventListener('change', () => applyGoalSetting(weeklyGoalInput.value));
+medicineOptions.addEventListener('change', updateMultiSelectSummaries);
+document.querySelector('#eating-patterns').addEventListener('change', updateMultiSelectSummaries);
+pauseAppInput.addEventListener('change', () => syncPauseMode(true));
+
+function joinedList(values) {
+  if (!values.length) return '';
+  if (values.length === 1) return values[0];
+  return `${values.slice(0, -1).join(', ')} and ${values.at(-1)}`;
+}
+
+function profileReflectionSentence(settings) {
+  const details = [];
+  if (settings.name) details.push(`the Champion’s name is ${settings.name}`);
+  if (settings.patientId) details.push(`their Patient ID is ${settings.patientId}`);
+  if (settings.age !== null) details.push(`they are ${settings.age} years old`);
+  if (settings.condition) details.push(`their condition is ${conditionLabels[settings.condition] || settings.condition}`);
+  if (settings.condition_location) details.push(`the location of concern is ${settings.condition_location}`);
+  if (settings.narrowing) {
+    const size = settings.narrowing === 'Yes' && settings.narrowing_size !== null
+      ? `, measuring ${settings.narrowing_size} ${settings.narrowing_unit}`
+      : '';
+    details.push(`intestinal narrowing is ${settings.narrowing.toLowerCase()}${size}`);
+  }
+  if (settings.surgery) details.push(`previous IBD surgery is ${settings.surgery}`);
+  if (settings.allergies_text) details.push(`reported allergies are ${settings.allergies_text}`);
+  if (settings.medicine_names.length) details.push(`current IBD medicines are ${joinedList(settings.medicine_names)}`);
+  if (settings.eating_patterns.length) details.push(`diet preferences are ${joinedList(settings.eating_patterns)}`);
+  details.push(`their check-in goal is ${weeklyGoalInput.selectedOptions[0]?.textContent || settings.check_in_goal}`);
+  details.push(`entry visibility is ${visibilityInput.selectedOptions[0]?.textContent || settings.visibility}`);
+  if (settings.caregivers.length) {
+    const caregiverDetails = settings.caregivers
+      .map((caregiver) => [caregiver.name, caregiver.relationship, caregiver.email].filter(Boolean).join(' · '))
+      .filter(Boolean);
+    if (caregiverDetails.length) details.push(`caregiver access includes ${joinedList(caregiverDetails)}`);
+  }
+  details.push(settings.paused ? 'the app is currently paused' : 'the app is active');
+  return `Please save this as a REFLECT input. Patient profile information for this patient: ${details.join('; ')}.`;
+}
 
 patientForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   profileSaveResult.className = 'profile-save-result';
   profileSaveResult.textContent = '';
   const patientId = cleanPatientRecord(patientIdInput.value);
-  if (!isValidPatientRecord(patientId)) {
+  if (conditionNarrowingInput.value === 'Yes' && conditionNarrowingSizeInput.value === '') {
     profileSaveResult.classList.add('is-error');
-    profileSaveResult.textContent = 'Please enter the complete 36-character Champion ID supplied by the clinic.';
-    patientIdInput.focus();
-    return;
-  }
-
-  if (allergiesInput.value.trim() && !allergyCandidates.length) { await reviewProfileText('allergies'); profileSaveResult.classList.add('is-error'); profileSaveResult.textContent = 'Please confirm the allergy chips, then save again.'; return; }
-  if (medicinesInput.value.trim() && !medicineCandidates.length) { await reviewProfileText('medicines'); profileSaveResult.classList.add('is-error'); profileSaveResult.textContent = 'Please confirm the medicine chips, then save again.'; return; }
-  if (allergyCandidates.some((item) => !item.confirmed) || medicineCandidates.some((item) => !item.confirmed)) {
-    profileSaveResult.classList.add('is-error');
-    profileSaveResult.textContent = 'Please confirm every allergy and medicine chip before saving.';
+    profileSaveResult.textContent = 'Add the narrowing size before saving.';
+    conditionNarrowingSizeInput.focus();
     return;
   }
 
   const age = patientAgeInput.value === '' ? null : Number(patientAgeInput.value);
   const settings = {
-    name: patientNameInput.value.trim(),
+    name: patientNameInput.value.trim() || 'Evan Koh',
     patientId,
     condition: patientConditionInput.value,
     condition_location: conditionDetails.hidden ? '' : conditionLocationInput.value,
     narrowing: conditionDetails.hidden ? '' : conditionNarrowingInput.value,
+    narrowing_size: conditionDetails.hidden || conditionNarrowingInput.value !== 'Yes' ? null : Number(conditionNarrowingSizeInput.value),
+    narrowing_unit: conditionDetails.hidden || conditionNarrowingInput.value !== 'Yes' ? '' : conditionNarrowingUnitInput.value,
     surgery: conditionDetails.hidden ? '' : conditionSurgeryInput.value,
-    status: patientStatusInput.value,
     age,
     audience: age !== null && age < 18 ? 'child' : age === null ? null : 'adult',
     allergies_text: allergiesInput.value.trim(),
-    allergies: allergyCandidates.map(({ label, code }) => ({ label, code, confirmed: true })),
-    medicines_text: medicinesInput.value.trim(),
-    medicines: medicineCandidates.map(({ label, category, pharmacist }) => ({ label, category, pharmacist: Boolean(pharmacist), confirmed: true })),
+    medicine_names: selectedMedicines(),
     eating_patterns: selectedEatingPatterns(),
     check_in_goal: weeklyGoalInput.value,
     visibility: visibilityInput.value,
     caregivers: caregivers.map((caregiver) => ({ name: caregiver.name.trim(), relationship: caregiver.relationship, email: caregiver.email.trim() })),
-    monthly_flare_nudge_seen: flareGoalNudgeDismissed
-  };
-
-  const payload = {
-    patient_record: patientId,
-    profile: { ...settings, patientId: undefined },
-    food_gates: {
-      condition: settings.condition || null,
-      condition_location: settings.condition_location || null,
-      narrowing: settings.narrowing || null,
-      surgery: settings.surgery || null,
-      status: settings.status || null,
-      confirmed_allergens: settings.allergies.map((item) => item.code),
-      medicines: settings.medicines,
-      eating_patterns: settings.eating_patterns,
-      visibility: settings.visibility,
-      assessment_default: 'NOT_ASSESSED'
-    }
+    paused: pauseAppInput.checked
   };
 
   saveProfileButton.disabled = true; saveProfileButton.textContent = 'Saving…';
+  // Save the complete form first. The hidden chat sync is additive, so a
+  // temporary network issue never discards the Champion's changes.
   try {
-    const response = await fetch(profileEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!response.ok) throw new Error(`Profile save failed (${response.status})`);
-    // Cache the last server-confirmed profile so the form can be restored, never as a substitute for POST.
     window.localStorage.setItem(patientStorageKey, JSON.stringify(settings));
-    savedPatientId = patientId;
+    savedPatientId = isValidPatientRecord(patientId) ? patientId : '';
     patientIdInput.value = patientId;
     applyGoalSetting(settings.check_in_goal);
     updatePatientSummary(settings.name, settings.condition, settings.age ?? '');
-    const readAs = [conditionLabels[settings.condition], settings.condition_location?.toLowerCase(), settings.status?.toLowerCase(), settings.allergies.length ? `allergies: ${settings.allergies.map((item) => item.label.toLowerCase()).join(', ')}` : ''].filter(Boolean);
-    const blankGateRows = [settings.condition, settings.status].filter((value) => !value).length;
-    profileSaveResult.textContent = readAs.length
-      ? `Your food scans will now read you as: ${readAs.join(' · ')}.${blankGateRows ? ` ${blankGateRows} left blank. Blank means the app says less, never more.` : ''}`
-      : `${blankGateRows} left blank. Blank means the app says less, never more.`;
-    showToast('Champion profile saved securely');
+    syncPauseMode();
+
+    if (!isValidPatientRecord(patientId)) {
+      profileSaveResult.textContent = 'Champion profile saved on this device. Add the complete Patient ID to sync it with HEARD.';
+      showToast('Champion profile saved');
+      return;
+    }
+
+    profileSaveResult.textContent = 'Champion profile saved. Syncing with HEARD…';
+    await requestCompanionReply(patientId, profileReflectionSentence(settings));
+    profileSaveResult.textContent = 'Champion profile saved and synced with HEARD.';
+    showToast('Champion profile saved and synced');
   } catch (error) {
-    profileSaveResult.classList.add('is-error');
-    profileSaveResult.textContent = 'We could not save this Champion profile. Nothing was changed—please try again.';
+    profileSaveResult.textContent = 'Champion profile saved on this device. HEARD could not sync it right now—please try Save again.';
+    showToast('Profile saved · sync pending');
     console.error(error);
   } finally {
     saveProfileButton.disabled = false; saveProfileButton.textContent = 'Save Champion profile';

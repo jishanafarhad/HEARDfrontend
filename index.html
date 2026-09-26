@@ -25,8 +25,8 @@
       <header class="top-bar">
         <div class="avatar avatar--user" aria-hidden="true"><span>👦🏻</span></div>
         <div class="identity">
-          <h1>Evan</h1>
-          <p>Your IBD Companion</p>
+          <h1 id="champion-name">Evan Koh</h1>
+          <p id="champion-condition">Your IBD Companion</p>
         </div>
         <div class="level-card level-card--header" aria-label="Level 3, 40 of 100 XP">
           <div class="level-row"><strong>Lv 3</strong><span class="xp-track"><i></i></span></div>
@@ -213,25 +213,24 @@
           <header class="profile-hero">
             <div class="avatar avatar--menu" aria-hidden="true">👦🏻</div>
             <div class="profile-hero-copy">
-              <p class="eyebrow">MY DETAILS</p>
-              <h2>IBD Champion</h2>
-              <p class="patient-summary" id="patient-summary">Evan · profile ready to complete</p>
+              <p class="eyebrow">CHAMPION PROFILE</p>
+              <h2>IBD Champion Details</h2>
+              <p class="patient-summary" id="patient-summary">Evan Koh</p>
             </div>
+            <label class="pause-app-toggle"><input id="pause-app" type="checkbox" /><span>Pause app</span></label>
           </header>
-          <p class="profile-intro">Make this space yours. Everything is optional except your clinic ID.</p>
 
           <form class="patient-form" id="patient-form">
-            <div class="profile-section-heading"><div><strong>About your Champion</strong><small>The basics used around the app</small></div></div>
+            <div class="profile-section-heading"><div><strong>About the Champion</strong></div></div>
             <fieldset class="profile-row profile-row--paired">
               <legend>Champion details</legend>
-              <label><span>Champion name</span><input id="patient-name" name="patientName" type="text" maxlength="60" autocomplete="name" placeholder="Evan" /></label>
+              <label><span>Champion’s name</span><input id="patient-name" name="patientName" type="text" maxlength="60" autocomplete="name" placeholder="Evan Koh" /></label>
               <label><span>Age</span><input id="patient-age" name="age" type="number" min="0" max="120" inputmode="numeric" placeholder="Age" /></label>
             </fieldset>
 
             <fieldset class="profile-row">
-              <legend>Clinic ID</legend>
-              <input id="patient-id" name="patientId" type="text" maxlength="36" autocomplete="off" spellcheck="false" aria-describedby="patient-id-hint" placeholder="e.g. bfdb8574-0419-46a9-a701-83059efaaaf4" />
-              <small class="field-hint" id="patient-id-hint">Use the complete Champion ID supplied by the clinic.</small>
+              <legend>Patient ID</legend>
+              <input id="patient-id" name="patientId" type="text" maxlength="36" autocomplete="off" spellcheck="false" placeholder="e.g. bfdb8574-0419-46a9-a701-83059efaaaf4" />
             </fieldset>
 
             <div class="profile-section-heading"><div><strong>Health details</strong><small>Helps HEARD give safer, more relevant support</small></div></div>
@@ -239,52 +238,63 @@
               <legend>Condition</legend>
               <select id="patient-condition" name="condition">
                 <option value="">Prefer not to say</option>
-                <option value="UC">UC</option>
-                <option value="Crohn's">Crohn’s</option>
-                <option value="Not classified">Not classified</option>
-                <option value="Not sure">Not sure</option>
+                <option value="Crohn's disease">Crohn’s Disease</option>
+                <option value="Ulcerative colitis">Ulcerative Colitis</option>
+                <option value="IBD unclassified">Inflammatory Bowel Disease Unclassified (IBD-U)</option>
               </select>
               <div class="condition-details" id="condition-details" hidden>
-                <label><span>Where</span><select id="condition-location" name="conditionLocation"><option value="">Prefer not to say</option><option>Small bowel</option><option>Colon</option><option>Both</option><option>Not sure</option></select></label>
-                <label><span>Narrowing <small>Changes safety advice</small></span><select id="condition-narrowing" name="narrowing"><option value="">Prefer not to say</option><option>Yes</option><option>No</option><option>Not sure</option></select></label>
-                <label><span>Surgery</span><select id="condition-surgery" name="surgery"><option value="">Prefer not to say</option><option>None</option><option>Stoma</option><option>Pouch</option></select></label>
+                <label><span>Location of concern</span><select id="condition-location" name="conditionLocation"><option value="">Prefer not to say</option><option>Small bowel</option><option>Colon</option><option>Both</option><option>Not sure</option></select></label>
+                <label><span>Intestinal narrowing (stricture)</span><select id="condition-narrowing" name="narrowing"><option value="">Prefer not to say</option><option>Yes</option><option>No</option><option>Not sure</option></select></label>
+                <div class="narrowing-size" id="narrowing-size-row" hidden>
+                  <label><span>Narrowing size</span><input id="condition-narrowing-size" name="narrowingSize" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Size" /></label>
+                  <label><span>Unit</span><select id="condition-narrowing-unit" name="narrowingUnit"><option value="mm">mm</option><option value="cm">cm</option></select></label>
+                </div>
+                <label><span>Previous IBD surgery</span><select id="condition-surgery" name="surgery"><option value="">Prefer not to say</option><option>No previous IBD surgery</option><option>Ileocaecal resection</option><option>Small bowel resection</option><option>Colectomy</option><option>Proctocolectomy</option><option>Stricturoplasty</option><option>Ileostomy</option><option>Colostomy</option><option>Ileoanal pouch (IPAA / J-pouch)</option><option>Multiple or other IBD surgery</option></select></label>
               </div>
-            </fieldset>
-
-            <fieldset class="profile-row">
-              <legend>Right now</legend>
-              <select id="patient-status" name="status"><option value="">Prefer not to say</option><option>Flaring</option><option>Settled</option><option>Not sure</option></select>
             </fieldset>
 
             <fieldset class="profile-row profile-parser">
               <legend>Allergies</legend>
-              <div class="parser-line"><input id="patient-allergies" name="allergiesText" type="text" placeholder="e.g. shellfish" /><button class="review-button" id="review-allergies" type="button">Review</button></div>
-              <div class="confirm-area" id="allergy-confirmations" aria-live="polite"></div>
+              <input id="patient-allergies" name="allergiesText" type="text" placeholder="e.g. shellfish, penicillin" />
             </fieldset>
 
-            <fieldset class="profile-row profile-parser">
+            <fieldset class="profile-row">
               <legend>Medicines</legend>
-              <div class="parser-line"><input id="patient-medicines" name="medicinesText" type="text" placeholder="Prescribed, OTC, supplements or TCM" /><button class="review-button" id="review-medicines" type="button">Review</button></div>
-              <div class="confirm-area" id="medicine-confirmations" aria-live="polite"></div>
+              <details class="profile-multiselect" id="medicine-selector">
+                <summary id="medicine-summary">Choose medicines</summary>
+                <div class="multi-select-options" id="medicine-options">
+                  <h4>5-ASAs</h4>
+                  <label><input type="checkbox" value="Mesalazine" />Mesalazine</label><label><input type="checkbox" value="Sulfasalazine" />Sulfasalazine</label><label><input type="checkbox" value="Olsalazine" />Olsalazine</label><label><input type="checkbox" value="Balsalazide" />Balsalazide</label>
+                  <h4>Corticosteroids</h4>
+                  <label><input type="checkbox" value="Prednisolone" />Prednisolone</label><label><input type="checkbox" value="Budesonide" />Budesonide</label><label><input type="checkbox" value="Hydrocortisone" />Hydrocortisone</label><label><input type="checkbox" value="Beclometasone dipropionate" />Beclometasone dipropionate</label>
+                  <h4>Immunomodulators</h4>
+                  <label><input type="checkbox" value="Azathioprine" />Azathioprine</label><label><input type="checkbox" value="Mercaptopurine (6-MP)" />Mercaptopurine (6-MP)</label><label><input type="checkbox" value="Methotrexate" />Methotrexate</label><label><input type="checkbox" value="Ciclosporin" />Ciclosporin</label><label><input type="checkbox" value="Tacrolimus" />Tacrolimus</label>
+                  <h4>Biologic and targeted medicines</h4>
+                  <label><input type="checkbox" value="Infliximab" />Infliximab</label><label><input type="checkbox" value="Adalimumab" />Adalimumab</label><label><input type="checkbox" value="Golimumab" />Golimumab</label><label><input type="checkbox" value="Vedolizumab" />Vedolizumab</label><label><input type="checkbox" value="Ustekinumab" />Ustekinumab</label><label><input type="checkbox" value="Risankizumab" />Risankizumab</label><label><input type="checkbox" value="Mirikizumab" />Mirikizumab</label><label><input type="checkbox" value="Tofacitinib" />Tofacitinib</label><label><input type="checkbox" value="Filgotinib" />Filgotinib</label><label><input type="checkbox" value="Upadacitinib" />Upadacitinib</label><label><input type="checkbox" value="Ozanimod" />Ozanimod</label><label><input type="checkbox" value="Etrasimod" />Etrasimod</label><label><input type="checkbox" value="Other IBD medicine" />Other IBD medicine</label>
+                </div>
+              </details>
             </fieldset>
 
             <div class="profile-section-heading"><div><strong>Preferences</strong><small>Choose what fits—nothing here is a rule</small></div></div>
             <fieldset class="profile-row">
               <legend>Diet</legend>
-              <div class="choice-grid" id="eating-patterns">
-                <label><input type="checkbox" value="Low residue" />Low residue</label><label><input type="checkbox" value="CDED" />CDED</label>
-                <label><input type="checkbox" value="EEN" />EEN</label><label><input type="checkbox" value="Formula + food" />Formula + food</label>
-                <label><input type="checkbox" value="Low FODMAP" />Low FODMAP</label><label><input type="checkbox" value="Mediterranean" />Mediterranean</label>
-                <label><input type="checkbox" value="Halal" />Halal</label><label><input type="checkbox" value="Vegetarian" />Vegetarian</label>
-                <label><input type="checkbox" value="Vegan" />Vegan</label><label><input type="checkbox" value="No beef" />No beef</label>
-                <label><input type="checkbox" value="No pork" />No pork</label>
-              </div>
+              <details class="profile-multiselect" id="diet-selector">
+                <summary id="diet-summary">Choose diet options</summary>
+                <div class="multi-select-options" id="eating-patterns">
+                  <label><input type="checkbox" value="Low residue" />Low residue</label><label><input type="checkbox" value="CDED" />Crohn’s Disease Exclusion Diet (CDED)</label>
+                  <label><input type="checkbox" value="EEN" />Exclusive enteral nutrition (EEN)</label><label><input type="checkbox" value="Formula + food" />Formula and food</label>
+                  <label><input type="checkbox" value="Low FODMAP" />Low FODMAP</label><label><input type="checkbox" value="Mediterranean" />Mediterranean</label>
+                  <label><input type="checkbox" value="Halal" />Halal</label><label><input type="checkbox" value="Vegetarian" />Vegetarian</label>
+                  <label><input type="checkbox" value="Vegan" />Vegan</label><label><input type="checkbox" value="No beef" />No beef</label>
+                  <label><input type="checkbox" value="No pork" />No pork</label>
+                </div>
+              </details>
             </fieldset>
 
             <fieldset class="profile-row">
               <legend>Check-in goal</legend>
               <select id="weekly-goal-input" name="checkInGoal">
-                <option value="weekly_1">Once a week</option><option value="weekly_3" selected>3× a week</option><option value="weekly_5">5× a week</option>
+                <option value="weekly_5">5× a week</option><option value="weekly_3" selected>3× a week</option><option value="weekly_1">Once a week</option>
                 <option value="monthly_2">Twice a month</option><option value="monthly_1">Once a month</option>
               </select>
               <small class="field-hint">A goal, not a rule.</small>
@@ -294,7 +304,7 @@
             <div class="profile-section-heading"><div><strong>Caregiver access</strong><small>Add up to two trusted caregivers</small></div></div>
             <fieldset class="profile-row caregiver-access">
               <legend>Caregiver accounts</legend>
-              <p class="field-hint caregiver-intro">Add the people Evan trusts to help with care.</p>
+              <p class="field-hint caregiver-intro" id="caregiver-intro">Add the people Evan Koh trusts to help with care.</p>
               <div class="caregiver-list" id="caregiver-list"></div>
               <button class="add-caregiver" id="add-caregiver" type="button"><span aria-hidden="true">＋</span> Create caregiver account</button>
               <small class="caregiver-count" id="caregiver-count">0 of 2 caregivers added</small>
@@ -308,7 +318,7 @@
 
             <div class="profile-save-result" id="profile-save-result" role="status" aria-live="polite"></div>
             <button class="save-profile" type="submit">Save Champion profile</button>
-            <small class="privacy-note">Saved securely to Evan’s Champion profile.</small>
+            <small class="privacy-note" id="profile-privacy-note">Saved securely to Evan Koh’s Champion profile.</small>
           </form>
         </div>
       </aside>
