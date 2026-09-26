@@ -3459,28 +3459,45 @@ function openMedsSheet() {
 }
 
 function openPainSheet() {
-  sheetHeading('Pain', 'Choose a pain score from 0 to 10, then add where and when it hurts.');
+  sheetHeading('Pain', 'Choose a face or any pain score from 0 to 10, then add where and when it hurts.');
   const locations=new Set();const timing=new Set();let score=null;
   const body=document.createElement('div');body.className='body-map';
   ['top of tummy','right side','around belly button','left side','low down','bottom','head'].forEach((zone)=>body.append(toggleButton(zone,zone,locations)));
   const bodySection=document.createElement('section');bodySection.className='sheet-question sheet-question--optional';
   const bodyTitle=document.createElement('h3');bodyTitle.textContent='Where does it hurt?';bodySection.append(bodyTitle,body);
   const scores=document.createElement('div');scores.className='choice-set pain-score-set';
+  const faceGuide=document.createElement('div');faceGuide.className='pain-face-guide';
+  const scoreButtons=new Map();
   const confirm=confirmGameButton('Save response ⭐ +10',()=>score!==null?{tile:'pain',score,scale:'nrs_0_10',locations:[...locations],timing:[...timing]}:null);
   Array.from({length:11},(_,value)=>value).forEach((value)=>{
     const label=value===0?'No pain':value===10?'Worst pain':`Pain score ${value}`;
-    const button=choiceButton(String(value),String(value),scores,(chosen)=>{score=Number(chosen);confirm.disabled=false;});
+    const button=choiceButton(String(value),String(value),scores,(chosen)=>{
+      score=Number(chosen);confirm.disabled=false;
+      faceGuide.querySelectorAll('[data-face-score]').forEach((face)=>face.classList.toggle('is-selected',Number(face.dataset.faceScore)===score));
+    });
     button.classList.add('pain-score-choice'); button.setAttribute('aria-label',`${value} out of 10: ${label}`);
-    scores.append(button);
+    scoreButtons.set(value,button);scores.append(button);
+  });
+  [['No hurt',0],['Hurts a little',2],['Hurts a bit more',4],['Hurts even more',6],['Hurts a lot',8],['Hurts worst',10]].forEach(([label,value],index)=>{
+    const face=document.createElement('button');face.type='button';face.className='pain-face-anchor';face.dataset.faceScore=String(value);
+    face.setAttribute('aria-label',`${label}: ${value} out of 10`);face.innerHTML=`${painFaceSvg(index)}<span>${value}</span>`;
+    face.addEventListener('click',()=>scoreButtons.get(value)?.click());faceGuide.append(face);
   });
   const scoreSection=document.createElement('section');scoreSection.className='sheet-question';
   const scoreTitle=document.createElement('h3');scoreTitle.textContent='Choose your pain score';
   const scoreLabels=document.createElement('div');scoreLabels.className='pain-scale-labels';scoreLabels.innerHTML='<span>0 · No pain</span><span>10 · Worst pain</span>';
-  scoreSection.append(scoreTitle,scores,scoreLabels);
+  scoreSection.append(scoreTitle,faceGuide,scores,scoreLabels);
   const chips=document.createElement('div');chips.className='toggle-chips';['after eating','before poo','better after poo','woke me','at school','all day'].forEach((item)=>chips.append(toggleButton(item,item,timing)));
   const timingSection=document.createElement('section');timingSection.className='sheet-question sheet-question--optional';
   const timingTitle=document.createElement('h3');timingTitle.textContent='When does it happen?';timingSection.append(timingTitle,chips);
   objectSheetContent.insertBefore(bodySection,confirm);objectSheetContent.insertBefore(scoreSection,confirm);objectSheetContent.insertBefore(timingSection,confirm);
+}
+
+function painFaceSvg(level) {
+  const mouth = ['M20 39 Q32 47 44 39','M21 40 Q32 44 43 40','M21 42 Q32 42 43 42','M20 43 Q32 37 44 43','M19 44 Q32 35 45 44','M18 46 Q32 32 46 46'][level];
+  const brows = level < 2 ? '' : `<path d="M19 ${27-level} L27 ${27+Math.min(level,3)} M45 ${27-level} L37 ${27+Math.min(level,3)}" fill="none" stroke="#26364d" stroke-width="2.4" stroke-linecap="round"/>`;
+  const tears = level === 5 ? '<path d="M20 34 Q16 40 20 44 Q24 40 20 34Z M44 34 Q40 40 44 44 Q48 40 44 34Z" fill="#49b9e8"/>' : '';
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="#fff4cf" stroke="#537da2" stroke-width="2.5"/><circle cx="23" cy="31" r="2.7" fill="#26364d"/><circle cx="41" cy="31" r="2.7" fill="#26364d"/>${brows}${tears}<path d="${mouth}" fill="none" stroke="#26364d" stroke-width="2.8" stroke-linecap="round"/></svg>`;
 }
 
 function openObjectSheet(tile, trigger = document.activeElement) {
