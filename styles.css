@@ -559,7 +559,6 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .profile-row label > span, .condition-details label > span { display: block; margin-bottom: 5px; color: #bcd8f3; font-size: 11px; }
 .condition-details { display: grid; gap: 9px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(105,175,226,.28); }
 .condition-details small { color: #8cb4d7; font-weight: 500; }
-.narrowing-size { display:grid; grid-template-columns:minmax(0,1fr) 82px; gap:8px; }
 .patient-form input,
 .patient-form select,
 .patient-form textarea { width: 100%; min-height: 39px; padding: 8px 10px; color: white; border: 1px solid #518dca; border-radius: 10px; outline: 0; background: rgba(5,35,71,.72); font-size:13px; line-height:1.25; }

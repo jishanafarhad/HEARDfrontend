@@ -245,9 +245,8 @@
               <div class="condition-details" id="condition-details" hidden>
                 <label><span>Location of concern</span><select id="condition-location" name="conditionLocation"><option value="">Prefer not to say</option><option>Small bowel</option><option>Colon</option><option>Both</option><option>Not sure</option></select></label>
                 <label><span>Intestinal narrowing (stricture)</span><select id="condition-narrowing" name="narrowing"><option value="">Prefer not to say</option><option>Yes</option><option>No</option><option>Not sure</option></select></label>
-                <div class="narrowing-size" id="narrowing-size-row" hidden>
-                  <label><span>Narrowing size</span><input id="condition-narrowing-size" name="narrowingSize" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Size" /></label>
-                  <label><span>Unit</span><select id="condition-narrowing-unit" name="narrowingUnit"><option value="mm">mm</option><option value="cm">cm</option></select></label>
+                <div id="stricture-location-row" hidden>
+                  <label><span>Where is the stricture?</span><select id="condition-stricture-location" name="strictureLocation"><option value="">Choose location</option><option>Small bowel</option><option>Terminal ileum</option><option>Ileocolonic anastomosis</option><option>Colon</option><option>Rectum</option><option>More than one location</option><option>Not sure</option></select></label>
                 </div>
                 <label><span>Previous IBD surgery</span><select id="condition-surgery" name="surgery"><option value="">Prefer not to say</option><option>No previous IBD surgery</option><option>Ileocaecal resection</option><option>Small bowel resection</option><option>Colectomy</option><option>Proctocolectomy</option><option>Stricturoplasty</option><option>Ileostomy</option><option>Colostomy</option><option>Ileoanal pouch (IPAA / J-pouch)</option><option>Multiple or other IBD surgery</option></select></label>
               </div>

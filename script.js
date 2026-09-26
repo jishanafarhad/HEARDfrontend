@@ -2705,9 +2705,8 @@ const patientConditionInput = document.querySelector('#patient-condition');
 const conditionDetails = document.querySelector('#condition-details');
 const conditionLocationInput = document.querySelector('#condition-location');
 const conditionNarrowingInput = document.querySelector('#condition-narrowing');
-const conditionNarrowingSizeRow = document.querySelector('#narrowing-size-row');
-const conditionNarrowingSizeInput = document.querySelector('#condition-narrowing-size');
-const conditionNarrowingUnitInput = document.querySelector('#condition-narrowing-unit');
+const strictureLocationRow = document.querySelector('#stricture-location-row');
+const conditionStrictureLocationInput = document.querySelector('#condition-stricture-location');
 const conditionSurgeryInput = document.querySelector('#condition-surgery');
 const allergiesInput = document.querySelector('#patient-allergies');
 const medicineOptions = document.querySelector('#medicine-options');
@@ -2757,13 +2756,13 @@ function clinicLinkValue(...keys) {
 
 function syncConditionDetails() {
   conditionDetails.hidden = !patientConditionInput.value;
-  syncNarrowingSize();
+  syncStrictureLocation();
 }
 
-function syncNarrowingSize() {
-  const needsSize = !conditionDetails.hidden && conditionNarrowingInput.value === 'Yes';
-  conditionNarrowingSizeRow.hidden = !needsSize;
-  conditionNarrowingSizeInput.required = needsSize;
+function syncStrictureLocation() {
+  const needsLocation = !conditionDetails.hidden && conditionNarrowingInput.value === 'Yes';
+  strictureLocationRow.hidden = !needsLocation;
+  conditionStrictureLocationInput.required = needsLocation;
 }
 
 function syncAudienceAndVisibility() {
@@ -2890,8 +2889,7 @@ function loadPatientSettings() {
   patientConditionInput.value = migratedCondition;
   conditionLocationInput.value = saved.condition_location || '';
   conditionNarrowingInput.value = saved.narrowing || '';
-  conditionNarrowingSizeInput.value = saved.narrowing_size ?? '';
-  conditionNarrowingUnitInput.value = saved.narrowing_unit || 'mm';
+  conditionStrictureLocationInput.value = saved.stricture_location || '';
   conditionSurgeryInput.value = saved.surgery || '';
   allergiesInput.value = saved.allergies_text || '';
   const savedMedicines = Array.isArray(saved.medicine_names)
@@ -2919,7 +2917,7 @@ patientConditionInput.addEventListener('change', () => {
   syncConditionDetails();
   updatePatientSummary(patientNameInput.value.trim(), patientConditionInput.value, patientAgeInput.value);
 });
-conditionNarrowingInput.addEventListener('change', syncNarrowingSize);
+conditionNarrowingInput.addEventListener('change', syncStrictureLocation);
 patientAgeInput.addEventListener('input', syncAudienceAndVisibility);
 weeklyGoalInput.addEventListener('change', () => applyGoalSetting(weeklyGoalInput.value));
 medicineOptions.addEventListener('change', updateMultiSelectSummaries);
@@ -2940,10 +2938,9 @@ function profileReflectionSentence(settings) {
   if (settings.condition) details.push(`their condition is ${conditionLabels[settings.condition] || settings.condition}`);
   if (settings.condition_location) details.push(`the location of concern is ${settings.condition_location}`);
   if (settings.narrowing) {
-    const size = settings.narrowing === 'Yes' && settings.narrowing_size !== null
-      ? `, measuring ${settings.narrowing_size} ${settings.narrowing_unit}`
-      : '';
-    details.push(`intestinal narrowing is ${settings.narrowing.toLowerCase()}${size}`);
+    if (settings.narrowing === 'Yes') details.push(`an intestinal stricture is present at ${settings.stricture_location}`);
+    if (settings.narrowing === 'No') details.push('no intestinal stricture is reported');
+    if (settings.narrowing === 'Not sure') details.push('intestinal stricture status is not sure');
   }
   if (settings.surgery) details.push(`previous IBD surgery is ${settings.surgery}`);
   if (settings.allergies_text) details.push(`reported allergies are ${settings.allergies_text}`);
@@ -2966,10 +2963,10 @@ patientForm.addEventListener('submit', async (event) => {
   profileSaveResult.className = 'profile-save-result';
   profileSaveResult.textContent = '';
   const patientId = cleanPatientRecord(patientIdInput.value);
-  if (conditionNarrowingInput.value === 'Yes' && conditionNarrowingSizeInput.value === '') {
+  if (conditionNarrowingInput.value === 'Yes' && conditionStrictureLocationInput.value === '') {
     profileSaveResult.classList.add('is-error');
-    profileSaveResult.textContent = 'Add the narrowing size before saving.';
-    conditionNarrowingSizeInput.focus();
+    profileSaveResult.textContent = 'Choose where the stricture is before saving.';
+    conditionStrictureLocationInput.focus();
     return;
   }
 
@@ -2980,8 +2977,7 @@ patientForm.addEventListener('submit', async (event) => {
     condition: patientConditionInput.value,
     condition_location: conditionDetails.hidden ? '' : conditionLocationInput.value,
     narrowing: conditionDetails.hidden ? '' : conditionNarrowingInput.value,
-    narrowing_size: conditionDetails.hidden || conditionNarrowingInput.value !== 'Yes' ? null : Number(conditionNarrowingSizeInput.value),
-    narrowing_unit: conditionDetails.hidden || conditionNarrowingInput.value !== 'Yes' ? '' : conditionNarrowingUnitInput.value,
+    stricture_location: conditionDetails.hidden || conditionNarrowingInput.value !== 'Yes' ? '' : conditionStrictureLocationInput.value,
     surgery: conditionDetails.hidden ? '' : conditionSurgeryInput.value,
     age,
     audience: age !== null && age < 18 ? 'child' : age === null ? null : 'adult',
