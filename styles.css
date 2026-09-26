@@ -869,11 +869,12 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 
 @container (max-width:560px) {
   /* Chat */
-  .bubble > strong { font-size:14px; }
+  .bubble > strong { font-size:15px; }
   .bubble p,
-  .markdown-response { font-size:16px; line-height:1.5; }
+  .markdown-response { font-size:15px; line-height:1.5; }
+  .markdown-response h3 { font-size:16px; }
   .message time { font-size:12px; }
-  .composer input { font-size:16px; }
+  .composer input { font-size:15px; }
   .chat-chips button { font-size:13px; }
 
   /* Game dashboard and activity sheets */
