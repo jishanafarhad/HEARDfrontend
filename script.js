@@ -2068,13 +2068,17 @@ function formatEntryValue(entry) {
   if (entry.api_entry && entry.type === 'food') return value.food_description || 'Food entry';
   if (entry.type === 'energy') return `Energy ${value}`;
   if (entry.type === 'mood') return `Mood ${value}`;
-  if (entry.type === 'sleep') return `Sleep ${value?.quality || value || 'not rated'}${value?.woke_to_go != null ? ` · woke to go ${value.woke_to_go}` : ''}`;
+  if (entry.type === 'sleep') {
+    const duration = { short:'< 6 hours', normal:'6–8 hours', long:'9+ hours' }[value?.duration] || value?.duration || '';
+    return `Sleep ${value?.quality || value || 'not rated'}${duration ? ` · ${duration}` : ''}${value?.woke_to_go != null ? ` · woke to go ${value.woke_to_go}` : ''}`;
+  }
   if (entry.type === 'toilet_trips') return `${value} toilet trips`;
-  if (entry.type === 'stool_type') return `Bristol type ${value?.bristol ?? value}${value?.urgency ? ' · had to rush' : ''}${value?.trips_band ? ' · more than 4 times' : ''}`;
+  if (entry.type === 'stool_type') return `Bristol type ${value?.bristol ?? value}${value?.urgency ? ' · sudden urgency' : ''}${value?.couldnt_make_it ? ' · couldn’t make it in time' : ''}`;
   if (entry.type === 'blood') return `Blood: ${String(value).replaceAll('_', ' ')}`;
   if (entry.type === 'pain') {
     const locations = Array.isArray(value?.locations) ? value.locations.join(', ') : value?.location || '';
-    const timing = Array.isArray(value?.timing) ? value.timing.join(', ') : value?.timing || '';
+    const timingLabels = { after_eating:'after eating', cramp_before_going:'cramp before going', better_after_going:'better after going', woke_me:'woke me', disrupted_school_work:'disrupted school / work', all_day:'all day', comes_in_waves:'comes in waves' };
+    const timing = Array.isArray(value?.timing) ? value.timing.map((item) => timingLabels[item] || item).join(', ') : value?.timing || '';
     return `Pain ${value?.score ?? value}/10${locations ? ` · ${locations}` : ''}${timing ? ` · ${timing}` : ''}`;
   }
   if (entry.type === 'food') return `${value.meal} · protein: ${value.protein}${value.status ? ` · ${value.status}${value.set_by ? ` by ${value.set_by}` : ''}` : ''}${value.after ? ` · after: ${value.after}` : ''}`;
@@ -3205,7 +3209,10 @@ function saveRoomState() {
 
 function gameTileSummary(tile, payload) {
   if (!payload) return 'Not entered';
-  if (tile === 'wellbeing') return `${payload.energy} energy · ${String(payload.sleep).replaceAll('_', ' ')} sleep`;
+  if (tile === 'wellbeing') {
+    const duration = { short:'< 6h', normal:'6–8h', long:'9+h' }[payload.sleep_duration] || '';
+    return `${payload.energy} energy · ${String(payload.sleep).replaceAll('_', ' ')} sleep${duration ? ` · ${duration}` : ''}`;
+  }
   if (tile === 'stools') return `Type ${payload.bristol} · ${String(payload.blood || 'no blood').replaceAll('_', ' ')}`;
   if (tile === 'pain') return `${payload.score} / 10`;
   if (tile === 'meds') {
@@ -3222,6 +3229,7 @@ function roomTilePayload(tile) {
       tile: 'wellbeing',
       energy: roomState.energy?.energy || 'not logged',
       sleep: roomState.sleep?.sleep || 'not logged',
+      sleep_duration: roomState.sleep?.sleep_duration || '',
       woke_to_go: roomState.sleep?.woke_to_go ?? null,
       tags: roomState.energy?.tags || []
     };
@@ -3294,14 +3302,15 @@ function confirmGameButton(label, getPayload) {
 }
 
 function openWellbeingSheet() {
-  sheetHeading('Energy + Sleep', 'Two quick check-ins: your energy today and how you slept last night.');
+  sheetHeading('Weather Forecast', 'Check your energy today and how you slept last night.');
   let energy = '';
   let sleep = '';
+  let sleepDuration = '';
   let wokeToGo = null;
-  const confirm = confirmGameButton('Save Energy + Sleep ⭐ +10', () => (
-    energy && sleep ? { tile:'wellbeing', energy, sleep, woke_to_go:wokeToGo, tags:[] } : null
+  const confirm = confirmGameButton('Save Weather Forecast ⭐ +10', () => (
+    energy && sleep && sleepDuration ? { tile:'wellbeing', energy, sleep, sleep_duration:sleepDuration, woke_to_go:wokeToGo, tags:[] } : null
   ));
-  const updateConfirm = () => { confirm.disabled = !(energy && sleep); };
+  const updateConfirm = () => { confirm.disabled = !(energy && sleep && sleepDuration); };
 
   const energySection = document.createElement('section'); energySection.className = 'sheet-question';
   const energyTitle = document.createElement('h3'); energyTitle.textContent = 'How is your energy today?';
@@ -3319,6 +3328,14 @@ function openWellbeingSheet() {
   });
   sleepSection.append(sleepTitle, sleepChoices);
 
+  const durationSection = document.createElement('section'); durationSection.className = 'sheet-question';
+  const durationTitle = document.createElement('h3'); durationTitle.textContent = 'How long did you sleep?';
+  const durationChoices = document.createElement('div'); durationChoices.className = 'choice-set sleep-duration-set';
+  [['Short sleep (< 6 hours)','short'],['Normal sleep (6–8 hours)','normal'],['Long sleep (9+ hours)','long']].forEach(([label,value]) => {
+    durationChoices.append(choiceButton(label, value, durationChoices, (chosen) => { sleepDuration = chosen; updateConfirm(); }));
+  });
+  durationSection.append(durationTitle, durationChoices);
+
   const wakeSection = document.createElement('section'); wakeSection.className = 'sheet-question sheet-question--optional';
   const wakeTitle = document.createElement('h3'); wakeTitle.textContent = 'Did you wake to use the toilet?';
   const wakeChoices = document.createElement('div'); wakeChoices.className = 'choice-set choice-set--four';
@@ -3329,6 +3346,7 @@ function openWellbeingSheet() {
 
   objectSheetContent.insertBefore(energySection, confirm);
   objectSheetContent.insertBefore(sleepSection, confirm);
+  objectSheetContent.insertBefore(durationSection, confirm);
   objectSheetContent.insertBefore(wakeSection, confirm);
 }
 
@@ -3357,7 +3375,7 @@ function openStoolsSheet() {
   sheetHeading('Poo Parade', 'Choose the Bristol type, then add the blood check for this poo.');
   const group = document.createElement('div'); group.className = 'choice-set bristol-choice-set'; let bristol = 0; let blood = '';
   const tags = new Set();
-  const confirm = confirmGameButton('Save Poo Parade ⭐ +10', () => bristol && blood ? { tile:'stools', bristol, blood, urgency:tags.has('urgency'), trips_band:tags.has('more_than_4') ? 'more_than_4' : null } : null);
+  const confirm = confirmGameButton('Save Poo Parade ⭐ +10', () => bristol && blood ? { tile:'stools', bristol, blood, urgency:tags.has('urgency'), couldnt_make_it:tags.has('couldnt_make_it') } : null);
   const updateConfirm = () => { confirm.disabled = !(bristol && blood); };
   ['Pebbles','Lumpy','Cracked','Smooth','Soft blobs','Mushy','Watery'].forEach((name,index) => {
     const type = index + 1;
@@ -3371,17 +3389,24 @@ function openStoolsSheet() {
   const bristolSection = document.createElement('section'); bristolSection.className = 'sheet-question';
   const bristolTitle = document.createElement('h3'); bristolTitle.textContent = 'What did it look like?';
   bristolSection.append(bristolTitle, group);
-  const chips = document.createElement('div'); chips.className = 'toggle-chips'; chips.append(toggleButton('Had to rush 💨','urgency',tags), toggleButton('More than 4 times','more_than_4',tags));
+  const chips = document.createElement('div'); chips.className = 'toggle-chips'; chips.append(toggleButton('Sudden Urgency ⚡','urgency',tags), toggleButton("Couldn't make it in time",'couldnt_make_it',tags));
   const detailsSection = document.createElement('section'); detailsSection.className = 'sheet-question sheet-question--optional';
   const detailsTitle = document.createElement('h3'); detailsTitle.textContent = 'Anything else?';
   detailsSection.append(detailsTitle, chips);
   const bloodSection = document.createElement('section'); bloodSection.className = 'sheet-question poo-blood-question';
   const bloodTitle = document.createElement('h3'); bloodTitle.textContent = 'Was there any blood?';
   const bloodChoices = document.createElement('div'); bloodChoices.className = 'choice-set choice-set--four';
+  const childBloodNudge = document.createElement('p'); childBloodNudge.className = 'child-blood-nudge'; childBloodNudge.textContent = 'Remember to show an adult today!'; childBloodNudge.hidden = true; childBloodNudge.setAttribute('role','status');
   [['No blood','none'],['Streaks','small_streaks'],['Mixed in','mixed'],['Mostly blood','mostly']].forEach(([label,value]) => {
-    bloodChoices.append(choiceButton(label, value, bloodChoices, (chosen) => { blood = chosen; updateConfirm(); }, 'blood-choice'));
+    bloodChoices.append(choiceButton(label, value, bloodChoices, (chosen) => {
+      blood = chosen; updateConfirm();
+      const profile = cachedProfile();
+      const isChild = profile.audience === 'child' || (profile.age !== null && profile.age !== '' && Number(profile.age) < 18) || document.documentElement.dataset.audience === 'child';
+      childBloodNudge.hidden = !(chosen === 'mostly' && isChild);
+      if (!childBloodNudge.hidden) showToast('Remember to show an adult today!');
+    }, 'blood-choice'));
   });
-  bloodSection.append(bloodTitle, bloodChoices);
+  bloodSection.append(bloodTitle, bloodChoices, childBloodNudge);
   objectSheetContent.insertBefore(bristolSection, confirm);
   objectSheetContent.insertBefore(detailsSection, confirm);
   objectSheetContent.insertBefore(bloodSection, confirm);
@@ -3459,7 +3484,7 @@ function openMedsSheet() {
 }
 
 function openPainSheet() {
-  sheetHeading('Pain', 'Choose a face or any pain score from 0 to 10, then add where and when it hurts.');
+  sheetHeading('Pain Detective', 'Choose a face or any pain score from 0 to 10, then add where and when it hurts.');
   const locations=new Set();const timing=new Set();let score=null;
   const body=document.createElement('div');body.className='body-map';
   ['top of tummy','right side','around belly button','left side','low down','bottom','head'].forEach((zone)=>body.append(toggleButton(zone,zone,locations)));
@@ -3487,7 +3512,10 @@ function openPainSheet() {
   const scoreTitle=document.createElement('h3');scoreTitle.textContent='Choose your pain score';
   const scoreLabels=document.createElement('div');scoreLabels.className='pain-scale-labels';scoreLabels.innerHTML='<span>0 · No pain</span><span>10 · Worst pain</span>';
   scoreSection.append(scoreTitle,faceGuide,scores,scoreLabels);
-  const chips=document.createElement('div');chips.className='toggle-chips';['after eating','before poo','better after poo','woke me','at school','all day'].forEach((item)=>chips.append(toggleButton(item,item,timing)));
+  const chips=document.createElement('div');chips.className='toggle-chips';[
+    ['after eating','after_eating'],['Cramp before going','cramp_before_going'],['Better after going','better_after_going'],
+    ['woke me','woke_me'],['Disrupted school / work','disrupted_school_work'],['all day','all_day'],['Comes in waves 🌊','comes_in_waves']
+  ].forEach(([label,value])=>chips.append(toggleButton(label,value,timing)));
   const timingSection=document.createElement('section');timingSection.className='sheet-question sheet-question--optional';
   const timingTitle=document.createElement('h3');timingTitle.textContent='When does it happen?';timingSection.append(timingTitle,chips);
   objectSheetContent.insertBefore(bodySection,confirm);objectSheetContent.insertBefore(scoreSection,confirm);objectSheetContent.insertBefore(timingSection,confirm);
@@ -3523,7 +3551,8 @@ function closeObjectSheet() {
 function gamePayloadSentence(payload) {
   if (payload.tile === 'wellbeing') {
     const waking = payload.woke_to_go == null ? '' : payload.woke_to_go === 0 ? ' I slept through without waking to use the toilet.' : ` I woke ${payload.woke_to_go} ${payload.woke_to_go === 1 ? 'time' : 'times'} to use the toilet.`;
-    return `My energy today is ${payload.energy}, and my sleep last night was ${String(payload.sleep).replaceAll('_', ' ')}.${waking}`;
+    const duration = { short:'less than 6 hours', normal:'6 to 8 hours', long:'9 hours or more' }[payload.sleep_duration];
+    return `My energy today is ${payload.energy}, and my sleep last night was ${String(payload.sleep).replaceAll('_', ' ')}.${duration ? ` I slept for ${duration}.` : ''}${waking}`;
   }
   if (payload.tile === 'energy') {
     const tags = payload.tags.length ? ` I also feel ${payload.tags.map((tag) => tag.replace('_', ' ')).join(' and ')}.` : '';
@@ -3537,8 +3566,8 @@ function gamePayloadSentence(payload) {
     const details = [`My stool was Bristol type ${payload.bristol}`];
     const bloodPhrase = { none:'I saw no blood', small_streaks:'I saw small streaks of blood', mixed:'I saw blood mixed in', mostly:'What I passed was mostly blood' }[payload.blood];
     if (bloodPhrase) details.push(bloodPhrase);
-    if (payload.urgency) details.push('I had to rush to the toilet');
-    if (payload.trips_band) details.push('I went to the toilet more than 4 times today');
+    if (payload.urgency) details.push('I had sudden urgency');
+    if (payload.couldnt_make_it) details.push("I couldn't make it to the toilet in time");
     return `${details.join('. ')}.`;
   }
   if (payload.tile === 'sleep') {
@@ -3558,7 +3587,16 @@ function gamePayloadSentence(payload) {
   }
   if (payload.tile === 'pain') {
     const location = payload.locations.length ? ` The pain is in my ${payload.locations.join(' and ')}.` : '';
-    const timing = payload.timing.length ? ` It happens ${payload.timing.join(' and ')}.` : '';
+    const timingSentences = {
+      after_eating:'It happens after eating.',
+      cramp_before_going:'I get a cramp before going.',
+      better_after_going:'It feels better after going.',
+      woke_me:'It woke me during the night.',
+      disrupted_school_work:'It disrupted school or work.',
+      all_day:'It lasted all day.',
+      comes_in_waves:'It comes in waves.'
+    };
+    const timing = payload.timing.length ? ` ${payload.timing.map((item) => timingSentences[item] || `It happens ${item}.`).join(' ')}` : '';
     return `My pain is ${payload.score} out of 10.${location}${timing}`;
   }
   return 'I completed a structured check-in response.';
@@ -3584,12 +3622,12 @@ async function sendGamePayload(payload) {
 function gameEntryFromPayload(payload) {
   if(payload.tile==='wellbeing'){
     addJournalEntry('energy',payload.energy,{source:'quest_tap'});
-    addJournalEntry('sleep',{quality:payload.sleep,woke_to_go:payload.woke_to_go},{source:'quest_tap'});
+    addJournalEntry('sleep',{quality:payload.sleep,duration:payload.sleep_duration,woke_to_go:payload.woke_to_go},{source:'quest_tap'});
   }
   if(payload.tile==='energy'){addJournalEntry('energy',payload.energy,{source:'quest_tap'});if(payload.tags.includes('low_mood'))addJournalEntry('mood','low',{source:'quest_tap'});}
   if(payload.tile==='blood')addJournalEntry('blood',payload.blood,{source:'quest_tap'});
   if(payload.tile==='stools'){
-    addJournalEntry('stool_type',{bristol:payload.bristol,urgency:payload.urgency,trips_band:payload.trips_band},{source:'quest_tap'});
+    addJournalEntry('stool_type',{bristol:payload.bristol,urgency:payload.urgency,couldnt_make_it:payload.couldnt_make_it},{source:'quest_tap'});
     addJournalEntry('blood',payload.blood,{source:'quest_tap'});
   }
   if(payload.tile==='sleep')addJournalEntry('sleep',{quality:payload.sleep,woke_to_go:payload.woke_to_go},{source:'quest_tap'});
