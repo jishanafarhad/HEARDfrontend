@@ -2865,6 +2865,16 @@ function renderMonthlySummary(host, markdown) {
   host.setAttribute('aria-busy', 'false');
   const content = document.createElement('div'); content.className = 'monthly-summary-markdown';
   renderMarkdown(content, markdown);
+  const clinicianQuestionsHeading = [...content.querySelectorAll('h3')].find((heading) =>
+    heading.textContent.toLowerCase().includes('questions i want to ask my clinician')
+  );
+  if (clinicianQuestionsHeading) {
+    let questionContent = clinicianQuestionsHeading.nextElementSibling;
+    while (questionContent && questionContent.tagName !== 'H3') {
+      questionContent.classList.add('clinician-question-copy');
+      questionContent = questionContent.nextElementSibling;
+    }
+  }
   const review = document.createElement('details'); review.className = 'share-privacy-review';
   const reviewTitle = document.createElement('summary'); reviewTitle.textContent = 'Review or remove sensitive information';
   const reviewBody = document.createElement('div');
@@ -3933,8 +3943,6 @@ objectSheetBackdrop.addEventListener('click',closeObjectSheet);
 document.addEventListener('keydown',(event)=>{ if(event.key==='Escape'&&!objectSheet.hidden) closeObjectSheet(); });
 
 /* ---------- Initial state ---------- */
-const statusTime = document.querySelector('#status-time');
-if (statusTime) statusTime.textContent = formatTime();
 loadPatientSettings();
 if (isCaregiverView) {
   document.querySelector('.quest-heading h2').textContent = 'Evan’s Check-in';
