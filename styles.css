@@ -1,7 +1,7 @@
 /* ---------- Design tokens ---------- */
 :root {
   color-scheme: dark;
-  font-family: Inter, ui-rounded, "SF Pro Rounded", "Avenir Next", system-ui, -apple-system, sans-serif;
+  font-family: ui-rounded, "SF Pro Rounded", "Avenir Next", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --ink: #f7fbff;
   --muted: #c9e0fb;
   --navy-950: #071f40;
@@ -33,7 +33,7 @@ body {
   overflow: hidden;
 }
 
-button, input { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
 
 /* ---------- App shell and system bar ---------- */
@@ -852,4 +852,114 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
   .monthly-summary-state p,
   .share-qr p,
   .approval-check { font-size:16px; }
+}
+
+/* ---------- Unified, phone-readable typography ---------- */
+/* Keep every screen on the same rounded system face, including controls that
+   previously declared a separate font in a shorthand rule. */
+.app,
+.app button,
+.app input,
+.app select,
+.app textarea {
+  font-family: ui-rounded, "SF Pro Rounded", "Avenir Next", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@media (max-width:560px) {
+  /* Chat */
+  .bubble > strong { font-size:14px; }
+  .bubble p,
+  .markdown-response { font-size:16px; line-height:1.5; }
+  .message time { font-size:12px; }
+  .composer input { font-size:16px; }
+  .chat-chips button { font-size:13px; }
+
+  /* Game dashboard and activity sheets */
+  .quest-heading h2 { font-size:22px; }
+  .quest-progress { font-size:14px; }
+  .quest-entry strong { font-size:15px; }
+  .quest-entry small { font-size:13px; }
+  .object-sheet .sheet-subtitle { font-size:15px; }
+  .sheet-question h3 { font-size:16px; }
+  .choice-button,
+  .toggle-chips button,
+  .save-game-response,
+  .dose-button,
+  .body-map button { font-size:14px; }
+  .sleep-quality-set .choice-button { font-size:13px; }
+
+  /* Journal, calendar, day view and entry detail */
+  .journal-header small { font-size:10px; }
+  .journal-header h2 { font-size:26px; }
+  .journal-header-actions button { font-size:15px; }
+  .journal-timeline-toolbar small { font-size:10px; }
+  .journal-timeline-toolbar strong { font-size:16px; }
+  .calendar-legend-bar { font-size:11px; line-height:1.35; }
+  .calendar-legend-bar > strong { font-size:12px; }
+  .calendar-filters button { font-size:11px; }
+  .calendar-month-title { font-size:25px; }
+  .month-counts { font-size:13px; }
+  .calendar-weekdays { font-size:10px; }
+  .calendar-day-number { font-size:14px; }
+  .calendar-entry-chip,
+  .calendar-entry-more { font-size:9px; }
+  .day-view-heading h3 { font-size:22px; }
+  .daily-analysis-content { font-size:15px; }
+  .daily-analysis-content h3 { font-size:18px; }
+  .day-entry-intro { font-size:13px; }
+  .day-entry-copy strong { font-size:16px; }
+  .day-entry-copy small { font-size:13px; }
+  .day-entry-appointment { font-size:15px; }
+  .entry-detail-field dt { font-size:11px; }
+  .entry-detail-field dd { font-size:15px; }
+
+  /* Champion profile */
+  .profile-intro,
+  .profile-hero .patient-summary { font-size:14px; }
+  .profile-section-heading strong { font-size:15px; }
+  .profile-section-heading small { font-size:11px; }
+  .profile-row legend,
+  .patient-form label { font-size:14px; }
+  .profile-row label > span,
+  .condition-details label > span { font-size:13px; }
+  .patient-form input,
+  .patient-form select,
+  .patient-form textarea { font-size:14px; }
+  .field-hint,
+  .caregiver-count,
+  .profile-save-result { font-size:13px; }
+
+  /* Learning and Community */
+  .destination-intro { font-size:16px; }
+  .learning-card strong { font-size:18px; }
+  .learning-card small { font-size:14px; }
+  .learning-welcome p,
+  .community-hero p,
+  .community-welcome p,
+  .event-card p,
+  .champion-results-empty { font-size:14px; }
+  .learning-path-chips button,
+  .learning-path-picker > p,
+  .community-search-note { font-size:13px; }
+  .learning-takeaway span,
+  .learning-answer p { font-size:15px; }
+  .event-card h4 { font-size:17px; }
+
+  /* The Share Card was visually one step larger than every other screen.
+     Bring it down one step while retaining comfortable clinical readability. */
+  .share-card-shell h2 { font-size:25px; }
+  .share-card-shell header small { font-size:10px; }
+  .share-period h3 { font-size:27px; }
+  .share-period p { font-size:15px; }
+  .share-monthly-summary > h3 { font-size:20px; }
+  .monthly-summary-markdown { font-size:16px; line-height:1.62; }
+  .monthly-summary-markdown h3 { font-size:19px; }
+  .monthly-summary-state p,
+  .share-qr p,
+  .approval-check { font-size:15px; }
+  .share-range-picker label,
+  .share-range-help,
+  .share-demo-note { font-size:12px; }
+  .share-privacy-review summary,
+  .share-privacy-review textarea { font-size:14px; }
 }
