@@ -215,6 +215,7 @@ modeButtons.forEach((button) => {
 
 function openDestination(destination) {
   const isLearning = destination === 'learning';
+  destinationPage.classList.toggle('destination-page--learning', isLearning);
   destinationPage.classList.toggle('destination-page--community', !isLearning);
   destinationKicker.textContent = isLearning ? 'LEARN A LITTLE' : 'YOU’RE NOT ALONE';
   destinationTitle.textContent = isLearning ? 'Learning Corner' : 'Community';
