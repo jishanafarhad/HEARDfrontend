@@ -650,7 +650,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .destination-page { position:absolute; z-index:70; inset:0; overflow:hidden; color:#173557; background:linear-gradient(160deg,#fff8df,#e9f7f5); opacity:0; transform:translateY(3%); transition:opacity .22s ease,transform .28s ease; }
 .destination-page[hidden] { display:none; }
 .destination-page.is-open { opacity:1; transform:none; }
-.destination-page--learning { background:linear-gradient(160deg,#f8fff8,#eaf8ee 55%,#dff2e7); }
+.destination-page--learning { background:linear-gradient(160deg,#f6fff2,#e8fbe8 55%,#d7f5dc); }
 .destination-page--community { background:linear-gradient(160deg,#fff6ef,#fff0f2 54%,#f7e7f1); }
 .destination-header { display:flex; align-items:center; gap:2cqw; min-height:11svh; padding:calc(16px + env(safe-area-inset-top)) 3cqw 16px; color:white; background:linear-gradient(110deg,#185f9f,#0a376c); box-shadow:0 5px 0 #072b55; }
 .destination-header button { display:grid; place-items:center; width:8cqw; max-width:54px; min-width:40px; aspect-ratio:1; padding:0; color:white; border:2px solid #62ccef; border-radius:14px; background:#124d86; cursor:pointer; font-size:32px; line-height:1; }
@@ -660,7 +660,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .learning-grid { display:grid; gap:2cqw; }
 .learning-card { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:2cqw; width:100%; padding:2.2cqw; color:#173d68; border:2px solid #75b9d6; border-radius:18px; background:rgba(255,255,255,.8); box-shadow:0 5px 0 #b6d4d7; text-align:left; }
 .learning-card > span:first-child { display:grid; place-items:center; width:7cqw; min-width:42px; aspect-ratio:1; border-radius:14px; background:#dff7f0; font-size:clamp(22px,4cqw,34px); }.learning-card strong { display:block; font-size:clamp(15px,2.6cqw,22px); }.learning-card small { display:block; margin-top:.4cqw; color:#5b7184; font-size:clamp(10px,1.5cqw,13px); }.learning-card b { color:#1889c8; font-size:24px; }
-.learning-welcome { margin-bottom:2.5cqw; padding:2.8cqw; color:white; border:2px solid #6edbf2; border-radius:21px; background:linear-gradient(135deg,#294a91,#5060aa 55%,#338b9d); box-shadow:0 5px 0 #183a72; }.learning-welcome small { color:#8cf0ed; font-size:clamp(9px,1.3cqw,11px); font-weight:950; letter-spacing:.14em; }.learning-welcome h3 { margin:.5cqw 0; font-size:clamp(21px,3.3cqw,30px); }.learning-welcome p { margin:0; color:#e2eeff; font-size:clamp(12px,1.7cqw,15px); }
+.learning-welcome { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:2cqw; margin-bottom:2.5cqw; padding:2.8cqw; color:white; border:2px solid #6edbf2; border-radius:21px; background:linear-gradient(135deg,#294a91,#5060aa 55%,#338b9d); box-shadow:0 5px 0 #183a72; }.learning-growth-icon { width:9cqw; min-width:54px; max-width:74px; filter:drop-shadow(0 4px 5px rgba(0,57,26,.25)); }.learning-welcome small { color:#8cf0ed; font-size:clamp(9px,1.3cqw,11px); font-weight:950; letter-spacing:.14em; }.learning-welcome h3 { margin:.5cqw 0; font-size:clamp(21px,3.3cqw,30px); }.learning-welcome p { margin:0; color:#e2eeff; font-size:clamp(12px,1.7cqw,15px); }
 .learning-path-picker { margin-bottom:2.5cqw; padding:2.3cqw; border:2px solid #92cbd8; border-radius:19px; background:rgba(255,255,255,.77); box-shadow:0 4px 0 #c1d9d8; }.learning-path-picker > small { color:#417795; font-size:clamp(8px,1.1cqw,10px); font-weight:950; letter-spacing:.13em; }.learning-path-picker h3 { margin:.35cqw 0 1.4cqw; color:#183f69; font-size:clamp(17px,2.5cqw,23px); }.learning-path-chips { display:flex; flex-wrap:wrap; gap:.8cqw; }.learning-path-chips button { flex:0 0 auto; padding:.8cqw 1.2cqw; color:#315d7b; border:1px solid #8eb6c8; border-radius:999px; background:#f9fcf8; cursor:pointer; font-size:clamp(9px,1.2cqw,11px); font-weight:900; }.learning-path-chips button.is-selected { color:white; border-color:#5366aa; background:#5366aa; }.learning-path-picker > p { min-height:2.4em; margin:1.2cqw 0 0; color:#5c7486; font-size:clamp(11px,1.45cqw,13px); line-height:1.35; }
 .learning-format-grid { gap:1.55cqw; }
 .learning-format-grid .learning-card { position:relative; overflow:hidden; padding:1.8cqw 2cqw; cursor:pointer; transition:transform .16s ease,filter .16s ease; }
@@ -670,6 +670,9 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .learning-format-grid .learning-card > span:first-child { background:color-mix(in srgb,var(--format-color) 15%,white); }
 .learning-card em { display:block; margin-bottom:.25cqw; color:var(--format-color); font-size:clamp(8px,1.05cqw,10px); font-style:normal; font-weight:950; letter-spacing:.11em; }
 .learning-card .participation-xp { display:inline-block; margin-top:.7cqw; padding:.4cqw .8cqw; color:#6b4c00; border:1px solid #f0c94d; border-radius:999px; background:#fff0a8; font-size:clamp(8px,1.05cqw,10px); font-style:normal; font-weight:950; line-height:1; letter-spacing:.02em; }
+.learning-medication-zone { margin-bottom:2.5cqw; padding:2.3cqw; border:2px solid #4bd66b; border-radius:20px; background:linear-gradient(145deg,rgba(250,255,247,.95),rgba(223,251,225,.94)); box-shadow:0 5px 0 #9fdca9,0 11px 22px rgba(5,116,50,.1); }
+.learning-medication-zone > header { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:1.5cqw; margin-bottom:1.6cqw; }.learning-medication-zone > header img { width:7cqw; min-width:44px; max-width:58px; }.learning-medication-zone > header small { color:#087c36; font-size:clamp(8px,1.1cqw,10px); font-weight:950; letter-spacing:.13em; }.learning-medication-zone > header h3 { margin:.2cqw 0; color:#0d4f2a; font-size:clamp(18px,2.8cqw,25px); }.learning-medication-zone > header p { margin:0; color:#52705c; font-size:clamp(10px,1.35cqw,12px); line-height:1.3; }
+.learning-medication-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2cqw; }.learning-medication-grid > button { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:1cqw; min-width:0; padding:1.45cqw; color:#123f25; border:2px solid #65ce79; border-radius:15px; background:#fbfff8; box-shadow:0 3px 0 #a8d9af; cursor:pointer; text-align:left; }.learning-medication-grid > button > span:first-child { display:grid; place-items:center; width:5.5cqw; min-width:36px; aspect-ratio:1; border-radius:12px; background:#d7f8dc; font-size:clamp(20px,3.2cqw,28px); }.learning-medication-grid > button > span:nth-child(2) { min-width:0; }.learning-medication-grid small,.learning-medication-grid strong,.learning-medication-grid em { display:block; }.learning-medication-grid small { color:#098540; font-size:clamp(7px,.9cqw,9px); font-weight:950; letter-spacing:.08em; }.learning-medication-grid strong { margin:.2cqw 0; font-size:clamp(13px,1.9cqw,17px); }.learning-medication-grid em { color:#587161; font-size:clamp(9px,1.15cqw,11px); font-style:normal; line-height:1.2; }.learning-medication-grid b { color:#08a947; font-size:24px; }
 .learning-inline-back { display:flex; align-items:center; gap:.8cqw; margin:0 0 2.2cqw; padding:1cqw 1.5cqw; color:#22557e; border:2px solid #8ac9da; border-radius:999px; background:rgba(255,255,255,.78); font-weight:900; cursor:pointer; }
 .learning-activity { --activity-color:#447fd0; position:relative; max-width:680px; margin:0 auto 4cqw; padding:3.2cqw; overflow:hidden; color:#173e66; border:2px solid #8ec7d5; border-radius:24px; background:rgba(255,255,255,.86); box-shadow:0 6px 0 #bdd9d8,0 14px 28px rgba(44,75,100,.13); }
 .learning-activity::before { content:""; position:absolute; inset:0 0 auto; height:.85cqw; min-height:6px; background:var(--activity-color); }
@@ -696,26 +699,35 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .medication-quiz-feedback strong { display:block; color:#246755; }.medication-quiz-feedback p { margin:.35cqw 0 0; line-height:1.45; }
 .medication-quiz-progress { margin:1.5cqw 0 0; color:#527268; font-weight:900; text-align:center; }
 .medication-quiz-complete { border-color:#79bea6; background:#edf9f3; }
+.medication-game-identity { display:flex; align-items:center; justify-content:center; gap:1.5cqw; margin-bottom:1.5cqw; }.medication-game-identity > span { display:grid; place-items:center; width:8cqw; min-width:52px; max-width:68px; aspect-ratio:1; border-radius:18px; background:#d9f9df; font-size:clamp(27px,4.5cqw,39px); }.medication-game-identity small,.medication-game-identity strong { display:block; }.medication-game-identity small { color:#07833a; font-size:clamp(8px,1.1cqw,10px); font-weight:950; letter-spacing:.09em; text-transform:uppercase; }.medication-game-identity strong { color:#123f25; font-size:clamp(21px,3.2cqw,29px); }
+.medication-game-safety { margin:0 0 1.7cqw; padding:1.35cqw; color:#466451; border:1px solid #add9b6; border-radius:12px; background:#f5fff3; font-size:clamp(11px,1.45cqw,13px); line-height:1.4; text-align:center; }
+.medication-learning-game { padding:2cqw; border:2px solid #55ca70; border-radius:18px; background:#fbfff8; box-shadow:0 4px 0 #a8dcb1; }
+.medication-game-progress { display:grid; gap:.7cqw; margin-bottom:1.5cqw; color:#14713a; font-size:clamp(9px,1.2cqw,11px); font-weight:950; letter-spacing:.08em; text-transform:uppercase; }.medication-game-progress i { position:relative; height:7px; overflow:hidden; border-radius:999px; background:#cdebd3; }.medication-game-progress i::after { content:""; position:absolute; inset:0 auto 0 0; width:var(--game-progress); border-radius:inherit; background:linear-gradient(90deg,#06a847,#5ee96f); }
+.medication-learning-game > h3 { margin:0 0 1.5cqw; color:#123f25; font-size:clamp(17px,2.5cqw,23px); line-height:1.25; text-align:center; }
+.medication-game-choices { display:grid; gap:1cqw; }.medication-game-choices button { min-height:46px; padding:1.2cqw 1.4cqw; color:#234d31; border:2px solid #9ac8a3; border-radius:13px; background:#fffdf5; cursor:pointer; font-weight:900; text-align:left; }.medication-game-choices button.is-selected { border-color:#117c3c; background:#dff6e3; }.medication-game-choices button.is-answer { color:#0d5328; border-color:#16ae4d; box-shadow:inset 4px 0 #16ae4d; }.medication-game-choices button:disabled { cursor:default; opacity:.78; }.medication-game-choices button.is-selected,.medication-game-choices button.is-answer { opacity:1; }
+.medication-game-feedback { margin-top:1.35cqw; padding:1.4cqw; color:#385b43; border:1px solid #7fd08f; border-radius:13px; background:#e9fbea; }.medication-game-feedback strong { display:block; color:#0c6b31; }.medication-game-feedback p { margin:.4cqw 0 0; line-height:1.45; }
+.medication-game-next { width:100%; margin-top:1.2cqw; padding:1.2cqw; color:white; border:2px solid #62e978; border-radius:13px; background:linear-gradient(#10b64d,#07873a); box-shadow:0 4px 0 #055d29; cursor:pointer; font-weight:950; }
+.medication-game-complete { display:grid; justify-items:center; gap:.6cqw; padding:2cqw; color:#31583e; text-align:center; }.medication-game-complete > span { font-size:clamp(30px,5cqw,44px); }.medication-game-complete small { color:#07833a; font-weight:950; letter-spacing:.12em; }.medication-game-complete strong { max-width:27em; color:#123f25; font-size:clamp(16px,2.3cqw,21px); line-height:1.3; }.medication-game-complete p { margin:.4cqw 0 0; line-height:1.45; }
 .learning-activity blockquote { margin:0 0 2cqw; color:#7e3567; font-size:clamp(20px,3.3cqw,30px); font-weight:900; line-height:1.25; text-align:center; }
 .reflection-prompt { display:block; margin-bottom:1cqw; color:#234a6a; font-weight:900; }.learning-activity textarea { width:100%; padding:1.5cqw; resize:vertical; color:#173e66; border:2px solid #c18fb3; border-radius:15px; background:#fffafb; font:700 clamp(13px,1.8cqw,16px)/1.4 Nunito,sans-serif; }
 .reflection-done { width:100%; margin-top:1.3cqw; padding:1.4cqw; color:white; border:2px solid #dd79b6; border-radius:14px; background:linear-gradient(#bf5b96,#984271); box-shadow:0 4px 0 #6d2e53; cursor:pointer; font-weight:900; }.reflection-response { margin:1.4cqw 0 0; color:#7a3563; font-weight:900; text-align:center; }
 .discovery-button { width:100%; margin-top:1.4cqw; padding:1.2cqw; color:white; border:2px solid #78c8d7; border-radius:14px; background:linear-gradient(#3978b7,#295b98); box-shadow:0 4px 0 #1c4478; cursor:pointer; font-weight:900; }.discovery-button:disabled { color:#305f52; border-color:#7ccab0; background:#dbf5e9; box-shadow:0 3px 0 #9acdbb; }
 .now-you-know { display:grid; gap:.55cqw; margin-top:2cqw; padding:2cqw; color:#224f45; border:2px solid #79c8a6; border-radius:17px; background:linear-gradient(145deg,#edfff4,#d9f5e8); box-shadow:0 4px 0 #a4d6bd; }.now-you-know small { color:#328365; font-size:clamp(9px,1.2cqw,11px); font-weight:950; letter-spacing:.12em; }.now-you-know strong { font-size:clamp(14px,2cqw,18px); line-height:1.3; }.now-you-know span { justify-self:start; padding:.45cqw .85cqw; color:#28644f; border-radius:999px; background:#c0ebd4; font-size:clamp(9px,1.15cqw,10px); font-weight:950; }
 
-/* Learning Corner uses a calm green family, parallel to Community's pink/red identity. */
+/* Learning Corner uses the vivid growth green from HEARD's learning icon. */
 .destination-page--learning .learning-welcome {
-  border-color:#7ed7a7;
-  background:linear-gradient(135deg,#176c50,#23966a 55%,#52b87e);
-  box-shadow:0 5px 0 #11543e,0 12px 24px rgba(24,103,76,.16);
+  border-color:#67ee79;
+  background:linear-gradient(135deg,#047d35,#08ad47 55%,#51df68);
+  box-shadow:0 5px 0 #045a28,0 12px 24px rgba(5,130,52,.2);
 }
-.destination-page--learning .learning-welcome small { color:#c9ffe0; }
+.destination-page--learning .learning-welcome small { color:#d5ffbb; }
 .destination-page--learning .learning-welcome p { color:#ecfff3; }
 .destination-page--learning .learning-path-picker {
   border-color:#91cfaa;
   background:rgba(250,255,249,.88);
   box-shadow:0 4px 0 #b9dac4;
 }
-.destination-page--learning .learning-path-picker > small { color:#2b8060; }
+.destination-page--learning .learning-path-picker > small { color:#087b36; }
 .destination-page--learning .learning-path-picker h3 { color:#174f3d; }
 .destination-page--learning .learning-path-picker > p { color:#4c7161; }
 .destination-page--learning .learning-path-chips button {
@@ -725,8 +737,8 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 }
 .destination-page--learning .learning-path-chips button.is-selected {
   color:white;
-  border-color:#27835f;
-  background:#27835f;
+  border-color:#08a947;
+  background:#08a947;
 }
 .destination-page--learning .learning-card {
   color:#194d3b;
@@ -735,14 +747,14 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
   box-shadow:0 5px 0 #b4d7c0;
 }
 .destination-page--learning .learning-card small { color:#567565; }
-.destination-page--learning .learning-card b { color:#25835f; }
-.destination-page--learning .learning-card--more { --format-color:#1f7558; }
-.destination-page--learning .learning-card--read { --format-color:#288b62; }
-.destination-page--learning .learning-card--reveal { --format-color:#49a66e; }
-.destination-page--learning .learning-card--myth { --format-color:#197b67; }
-.destination-page--learning .learning-card--scenario { --format-color:#5a9b55; }
-.destination-page--learning .learning-card--meds { --format-color:#257f69; }
-.destination-page--learning .learning-card--try { --format-color:#65a75f; }
+.destination-page--learning .learning-card b { color:#08a947; }
+.destination-page--learning .learning-card--more { --format-color:#07863a; }
+.destination-page--learning .learning-card--read { --format-color:#0c9e43; }
+.destination-page--learning .learning-card--reveal { --format-color:#35c65c; }
+.destination-page--learning .learning-card--myth { --format-color:#059a52; }
+.destination-page--learning .learning-card--scenario { --format-color:#58bd4f; }
+.destination-page--learning .learning-card--meds { --format-color:#07984b; }
+.destination-page--learning .learning-card--try { --format-color:#65cb56; }
 .destination-page--learning .learning-inline-back {
   color:#24634d;
   border-color:#8ac8a3;
@@ -760,6 +772,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .destination-page--learning .learning-activity--scenario { --activity-color:#5a9b55; }
 .destination-page--learning .learning-activity--med-adherence { --activity-color:#257f69; }
 .destination-page--learning .learning-activity--one-thing { --activity-color:#65a75f; }
+.destination-page--learning .learning-activity--medicine-game { --activity-color:#08ad47; }
 .destination-page--learning .learning-lede,
 .destination-page--learning .learning-question,
 .destination-page--learning .reflection-prompt { color:#194d3b; }
@@ -791,7 +804,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
   background:linear-gradient(#33956c,#227454);
   box-shadow:0 4px 0 #16563e;
 }
-@media (max-width:430px) { .tell-more-choices { grid-template-columns:1fr; } }
+@media (max-width:430px) { .tell-more-choices,.learning-medication-grid { grid-template-columns:1fr; } }
 .community-welcome { padding:4cqw; border:2px solid #76d7e9; border-radius:24px; background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(221,249,241,.92)); box-shadow:0 6px 0 #a8d9d4; text-align:center; }.community-welcome img { width:24cqw; max-width:170px; }.community-welcome h3 { margin:1cqw 0; color:#174f7c; font-size:clamp(22px,4cqw,34px); }.community-welcome p { margin:0 auto; max-width:34em; color:#49677b; line-height:1.5; }
 .community-hero {
   position:relative;

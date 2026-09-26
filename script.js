@@ -234,8 +234,9 @@ function renderLearningHome() {
   destinationKicker.textContent = 'LEARN A LITTLE';
   destinationTitle.textContent = 'Learning Corner';
   destinationContent.innerHTML = `
-    <section class="learning-welcome"><small>FOLLOW YOUR CURIOSITY</small><h3>Pick what feels easy today</h3><p>Take the 20-second answer or explore further. No tests, scores or streaks.</p></section>
+    <section class="learning-welcome"><img class="learning-growth-icon" src="./public/Learn and growth icon.png" alt="" /><div><small>FOLLOW YOUR CURIOSITY</small><h3>Pick what feels easy today</h3><p>Take the 20-second answer or explore further. No tests, scores or streaks.</p></div></section>
     <section class="learning-path-picker" aria-labelledby="learning-path-title"><small>EXPLORE BY THEME</small><h3 id="learning-path-title">Life with IBD, not homework</h3><div class="learning-path-chips"><button class="is-selected" type="button" data-learning-path="ibd">Understand my IBD</button><button type="button" data-learning-path="body">Understand my body</button><button type="button" data-learning-path="living">Living with IBD</button><button type="button" data-learning-path="mind">Mind &amp; me</button><button type="button" data-learning-path="speak">Speak up</button></div><p id="learning-path-copy">Crohn’s and UC, remission, inflammation, tests and medicines.</p></section>
+    <section class="learning-medication-zone" aria-labelledby="medicine-games-title"><header><img src="./public/Learn and growth icon.png" alt="" /><div><small>MY MEDICINE GAMES</small><h3 id="medicine-games-title">Understand your medicines</h3><p>Three quick discoveries for each medicine—no test and no pass mark.</p></div></header><div class="learning-medication-grid"><button type="button" data-learning-format="adalimumab-game"><span aria-hidden="true">💉</span><span><small>BIOLOGIC</small><strong>Adalimumab</strong><em>How it targets inflammation</em></span><b aria-hidden="true">›</b></button><button type="button" data-learning-format="azathioprine-game"><span aria-hidden="true">💊</span><span><small>IMMUNOMODULATOR</small><strong>Azathioprine</strong><em>How it calms immune activity</em></span><b aria-hidden="true">›</b></button></div></section>
     <div class="learning-grid learning-format-grid">
       <button class="learning-card learning-card--more" type="button" data-learning-format="tell-more"><span>🔎</span><span><em>YOU CHOOSE THE DEPTH</em><strong>Tell Me More</strong><small>Biologics—in one sentence, or explore your questions.</small><i class="participation-xp">+5 XP</i></span><b>›</b></button>
       <button class="learning-card learning-card--read" type="button" data-learning-format="quick-read"><span>📖</span><span><em>30–60 SEC</em><strong>Quick Read</strong><small>Why am I tired even when my Crohn’s is quiet?</small><i class="participation-xp">+5 XP</i></span><b>›</b></button>
@@ -254,7 +255,94 @@ function learningActivityShell(format, label, title, body) {
   destinationContent.scrollTop = 0;
 }
 
+const medicationLearningGames = Object.freeze({
+  adalimumab: {
+    name: 'Adalimumab',
+    type: 'Biologic · anti-TNF',
+    icon: '💉',
+    discovery: 'adalimumab',
+    source: 'https://www.nhs.uk/medicines/adalimumab/',
+    questions: [
+      {
+        question: 'What is Adalimumab designed to do?',
+        choices: ['Block a specific inflammation signal called TNF', 'Work as a quick painkiller', 'Replace vitamins in the body'],
+        correct: 0,
+        explanation: 'Adalimumab is a biologic medicine. It blocks TNF, one signal involved in inflammation, to help bring IBD under control.'
+      },
+      {
+        question: 'Why are check-ins and blood tests part of treatment?',
+        choices: ['To monitor how treatment is working and support safety', 'To earn a better medicine score', 'Because every injection causes a flare'],
+        correct: 0,
+        explanation: 'Monitoring helps the care team check response and safety. The exact checks and timing come from the IBD team.'
+      },
+      {
+        question: 'What is the safest move if injections, side effects or a missed dose worry you?',
+        choices: ['Ask the IBD team or pharmacist what to do', 'Change the schedule yourself', 'Stop without telling anyone'],
+        correct: 0,
+        explanation: 'The IBD team or pharmacist can give advice for your specific plan. Do not change or stop treatment without checking with them.'
+      }
+    ]
+  },
+  azathioprine: {
+    name: 'Azathioprine',
+    type: 'Immunomodulator · thiopurine',
+    icon: '💊',
+    discovery: 'azathioprine',
+    source: 'https://www.nhs.uk/medicines/azathioprine/common-questions-about-azathioprine/',
+    questions: [
+      {
+        question: 'How does Azathioprine help with IBD?',
+        choices: ['It calms immune activity that can drive inflammation', 'It coats the bowel like a bandage', 'It works only as a painkiller'],
+        correct: 0,
+        explanation: 'Azathioprine is an immunosuppressant. It calms parts of the immune response to help reduce inflammation.'
+      },
+      {
+        question: 'Why might you not notice a change straight away?',
+        choices: ['It works gradually over time', 'It only works while sleeping', 'It has no effect on inflammation'],
+        correct: 0,
+        explanation: 'Azathioprine works gradually and can take weeks before benefits are noticed. Keep following the plan agreed with the IBD team.'
+      },
+      {
+        question: 'What are regular blood tests helping the team monitor?',
+        choices: ['Blood cells and how organs such as the liver are coping', 'Whether you remembered breakfast', 'Your pain score only'],
+        correct: 0,
+        explanation: 'Blood tests help the care team spot changes early and check that treatment remains suitable for you.'
+      }
+    ]
+  }
+});
+
+function renderMedicationLearningRound(gameKey, round = 0) {
+  const game = medicationLearningGames[gameKey];
+  const host = destinationContent.querySelector('[data-medication-learning-game]');
+  if (!game || !host) return;
+  if (round >= game.questions.length) {
+    host.dataset.round = String(game.questions.length);
+    host.innerHTML = `<div class="medication-game-complete"><span aria-hidden="true">🌱</span><small>DISCOVERY COMPLETE</small><strong>You now know the role of ${game.name}, why monitoring matters, and where to take questions.</strong><p>Your own IBD team and medicine leaflet remain the source for instructions about your treatment.</p></div>`;
+    showLearningDiscovery(game.discovery);
+    return;
+  }
+  const item = game.questions[round];
+  host.dataset.round = String(round);
+  host.innerHTML = `<div class="medication-game-progress"><span>Discovery ${round + 1} of ${game.questions.length}</span><i style="--game-progress:${((round + 1) / game.questions.length) * 100}%"></i></div><h3>${item.question}</h3><div class="medication-game-choices">${item.choices.map((choice, index) => `<button type="button" data-medication-learning-choice="${index}">${choice}</button>`).join('')}</div><div class="medication-game-feedback" hidden aria-live="polite"></div><button class="medication-game-next" type="button" data-medication-learning-next hidden>${round + 1 === game.questions.length ? 'Finish discovery' : 'Next discovery'} ›</button>`;
+}
+
+function openMedicationLearningGame(gameKey) {
+  const game = medicationLearningGames[gameKey];
+  if (!game) return;
+  learningActivityShell('medicine-game', 'Know your medicine', game.name, `
+    <div class="medication-game-identity"><span aria-hidden="true">${game.icon}</span><div><small>${game.type}</small><strong>${game.name}</strong></div></div>
+    <p class="medication-game-safety">Learn what this medicine does. For doses, side effects or changes, use your own plan and ask your IBD team or pharmacist.</p>
+    <section class="medication-learning-game" data-medication-learning-game="${gameKey}" aria-live="polite"></section>
+    <a class="learning-source" href="${game.source}" target="_blank" rel="noreferrer">Read trusted medicine information from the NHS ↗</a>`);
+  renderMedicationLearningRound(gameKey, 0);
+}
+
 function openLearningFormat(format) {
+  if (format === 'adalimumab-game' || format === 'azathioprine-game') {
+    openMedicationLearningGame(format.replace('-game', ''));
+    return;
+  }
   if (format === 'tell-more') {
     learningActivityShell(format, 'Tell Me More', 'Biologics', `
       <div class="learning-activity-icon" aria-hidden="true">🔎</div><p class="learning-lede">Biologics calm specific parts of the immune system involved in inflammation.</p>
@@ -321,6 +409,8 @@ const learningDiscoveryCopy = Object.freeze({
   inflammation: 'Feeling better and having controlled inflammation are not always the same thing.',
   planning: 'A small plan or one trusted person can make social situations feel more manageable.',
   medication: 'Medication routines work best when they fit your real life—and support is available when something gets in the way.',
+  adalimumab: 'Adalimumab is a biologic that targets TNF, one signal involved in inflammation.',
+  azathioprine: 'Azathioprine gradually calms immune activity, and regular monitoring supports safe treatment.',
   joy: 'Your life contains moments that belong to you—not to IBD.'
 });
 const completedLearningDiscoveries = new Set();
@@ -466,6 +556,31 @@ destinationContent.addEventListener('click', (event) => {
   if (event.target.closest('[data-learning-back]')) {
     renderLearningHome();
     destinationContent.scrollTop = 0;
+    return;
+  }
+  const medicationLearningChoice = event.target.closest('[data-medication-learning-choice]');
+  if (medicationLearningChoice) {
+    const host = medicationLearningChoice.closest('[data-medication-learning-game]');
+    const game = medicationLearningGames[host?.dataset.medicationLearningGame];
+    const round = Number(host?.dataset.round || 0);
+    const item = game?.questions?.[round];
+    if (!host || !item) return;
+    const selectedIndex = Number(medicationLearningChoice.dataset.medicationLearningChoice);
+    host.querySelectorAll('[data-medication-learning-choice]').forEach((button, index) => {
+      button.disabled = true;
+      button.classList.toggle('is-selected', index === selectedIndex);
+      button.classList.toggle('is-answer', index === item.correct);
+    });
+    const feedback = host.querySelector('.medication-game-feedback');
+    feedback.innerHTML = `<strong>${selectedIndex === item.correct ? 'That fits.' : `The closer match is: ${item.choices[item.correct]}.`}</strong><p>${item.explanation}</p>`;
+    feedback.hidden = false;
+    host.querySelector('[data-medication-learning-next]').hidden = false;
+    return;
+  }
+  const medicationLearningNext = event.target.closest('[data-medication-learning-next]');
+  if (medicationLearningNext) {
+    const host = medicationLearningNext.closest('[data-medication-learning-game]');
+    renderMedicationLearningRound(host?.dataset.medicationLearningGame, Number(host?.dataset.round || 0) + 1);
     return;
   }
   const revealButton = event.target.closest('[data-reveal-answer]');
