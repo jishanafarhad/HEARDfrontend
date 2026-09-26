@@ -3411,19 +3411,19 @@ function openMedsSheet() {
   const question = document.createElement('section'); question.className = 'sheet-question medicine-primary-question';
   const title = document.createElement('h3'); title.textContent = 'Did you take your prescribed IBD medications today?';
   const choices = document.createElement('div'); choices.className = 'medicine-primary-actions';
-  const no = document.createElement('button'); no.type = 'button'; no.className = 'medicine-primary-button medicine-primary-button--no'; no.textContent = 'MISSED MY DOSE';
+  const no = document.createElement('button'); no.type = 'button'; no.className = 'medicine-primary-button medicine-primary-button--no'; no.textContent = 'MISSED MY DOSE 🛑';
   const yes = document.createElement('button'); yes.type = 'button'; yes.className = 'medicine-primary-button medicine-primary-button--yes'; yes.textContent = 'YES, ALL TAKEN 👍';
   choices.append(no, yes); question.append(title, choices);
 
   const reasonSection = document.createElement('section'); reasonSection.className = 'sheet-question medicine-reasons'; reasonSection.hidden = true;
-  const reasonTitle = document.createElement('h3'); reasonTitle.textContent = 'Understood. Health shifts happen. What got in the way today?';
+  const reasonTitle = document.createElement('h3'); reasonTitle.textContent = 'Understood. Health schedules change. What got in the way today?';
   const reasons = document.createElement('div'); reasons.className = 'medicine-reason-list';
   const reasonOptions = [
-    ['Forgot my morning alarm', 'forgot'],
-    ['Feeling completely fine or healthy today', 'felt_well'],
-    ['Worried about side effects', 'side_effects'],
-    ['Prescription ran out or waiting on pharmacy', 'ran_out'],
-    ['Difficulty swallowing or nausea', 'swallowing_or_nausea']
+    ['Simply forgot / Lost track of time', 'forgot'],
+    ['Feeling completely fine / Well today', 'felt_well'],
+    ['Experiencing unpleasant side effects', 'side_effects'],
+    ['Pharmacy stock delay / Refill ran out', 'ran_out'],
+    ['Difficulty swallowing / Active nausea', 'swallowing_or_nausea']
   ];
 
   const setBusy = (busy, activeButton) => {
@@ -3531,11 +3531,11 @@ function gamePayloadSentence(payload) {
   if (payload.tile === 'meds') {
     if (payload.status === 'taken') return 'I took all of my prescribed IBD medications today.';
     const reasonPhrases = {
-      forgot:' because I forgot my morning alarm',
-      felt_well:' because I was feeling completely fine or healthy',
-      side_effects:' because I was worried about side effects',
-      ran_out:' because my prescription ran out or I am waiting on the pharmacy',
-      swallowing_or_nausea:' because I had difficulty swallowing or nausea'
+      forgot:' because I simply forgot or lost track of time',
+      felt_well:' because I was feeling completely fine or well today',
+      side_effects:' because I was experiencing unpleasant side effects',
+      ran_out:' because of a pharmacy stock delay or my refill ran out',
+      swallowing_or_nausea:' because I had difficulty swallowing or active nausea'
     };
     return `I did not take my prescribed IBD medications today${reasonPhrases[payload.reason] || ''}.`;
   }
