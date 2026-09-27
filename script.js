@@ -30,7 +30,6 @@ const photoDraftImage = document.querySelector('#photo-draft-image');
 const photoDraftRemove = document.querySelector('#photo-draft-remove');
 const menu = document.querySelector('#menu');
 const menuButton = document.querySelector('#menu-button');
-const toast = document.querySelector('#toast');
 const gameTiles = [...document.querySelectorAll('[data-game-tile]')];
 const isCaregiverView = document.body.dataset.appRole === 'caregiver';
 
@@ -38,7 +37,6 @@ let activeMode = 'chat';
 let weeklyCheckIns = 2;
 let weeklyGoal = 3;
 let savedPatientId = '';
-let toastTimer;
 let speechRecognition = null;
 let voiceStartPending = false;
 let recordingTimer = null;
@@ -94,12 +92,9 @@ function buildFlareConversationText(text) {
   return `${flareConversationPrefix} ${text.trim()}`;
 }
 
-function showToast(message) {
-  window.clearTimeout(toastTimer);
-  toast.textContent = message;
-  toast.classList.add('is-visible');
-  toastTimer = window.setTimeout(() => toast.classList.remove('is-visible'), 1900);
-}
+// Toasts intentionally stay silent. Feedback belongs beside the control that
+// needs attention instead of covering the bottom of a phone screen.
+function showToast() {}
 
 function scrollChatToLatest(behavior = 'smooth') {
   messages.scrollTo({ top: messages.scrollHeight, behavior });
@@ -3119,6 +3114,9 @@ const visibilityHint = document.querySelector('#visibility-hint');
 const caregiverList = document.querySelector('#caregiver-list');
 const addCaregiverButton = document.querySelector('#add-caregiver');
 const caregiverCount = document.querySelector('#caregiver-count');
+const importHistoryButton = document.querySelector('#import-history-button');
+const importHistoryInput = document.querySelector('#import-history-input');
+const importHistoryStatus = document.querySelector('#import-history-status');
 const profileSaveResult = document.querySelector('#profile-save-result');
 const saveProfileButton = patientForm.querySelector('.save-profile');
 const patientSummary = document.querySelector('#patient-summary');
@@ -3129,6 +3127,8 @@ const pauseAppInput = document.querySelector('#pause-app');
 const caregiverIntro = document.querySelector('#caregiver-intro');
 const profilePrivacyNote = document.querySelector('#profile-privacy-note');
 const patientStorageKey = 'heard-patient-settings';
+const importedHistoryStorageKey = 'heard-imported-history';
+const maxImportedHistoryBytes = 1024 * 1024;
 let caregivers = [];
 
 const conditionLabels = {
@@ -3208,6 +3208,59 @@ addCaregiverButton.addEventListener('click', () => {
   caregivers.push({ name: '', relationship: '', email: '' }); renderCaregivers();
   caregiverList.lastElementChild?.querySelector('input')?.focus();
 });
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function restoreImportedHistoryStatus() {
+  try {
+    const savedImport = JSON.parse(localStorage.getItem(importedHistoryStorageKey));
+    if (!savedImport?.name) return;
+    importHistoryStatus.textContent = `${savedImport.name} imported · ${formatFileSize(savedImport.size || 0)}`;
+    importHistoryStatus.classList.add('is-ready');
+  } catch {
+    localStorage.removeItem(importedHistoryStorageKey);
+  }
+}
+
+importHistoryButton.addEventListener('click', () => importHistoryInput.click());
+importHistoryInput.addEventListener('change', async () => {
+  const file = importHistoryInput.files?.[0];
+  if (!file) return;
+  importHistoryStatus.classList.remove('is-ready', 'is-error');
+
+  if (file.size > maxImportedHistoryBytes) {
+    importHistoryStatus.textContent = 'This export is over 1 MB. Choose a smaller file or split the export first.';
+    importHistoryStatus.classList.add('is-error');
+    importHistoryInput.value = '';
+    return;
+  }
+
+  try {
+    const content = await file.text();
+    if (!content.trim()) throw new Error('empty import');
+    const importedHistory = {
+      name: file.name,
+      type: file.type || 'text/plain',
+      size: file.size,
+      imported_at: new Date().toISOString(),
+      content
+    };
+    localStorage.setItem(importedHistoryStorageKey, JSON.stringify(importedHistory));
+    importHistoryStatus.textContent = `${file.name} imported · ${formatFileSize(file.size)}`;
+    importHistoryStatus.classList.add('is-ready');
+  } catch {
+    importHistoryStatus.textContent = 'This file could not be imported. Try a JSON, CSV, TXT, Markdown, or HTML export.';
+    importHistoryStatus.classList.add('is-error');
+  } finally {
+    importHistoryInput.value = '';
+  }
+});
+
+restoreImportedHistoryStatus();
 
 function selectedEatingPatterns() {
   return [...document.querySelectorAll('#eating-patterns input:checked')].map((input) => input.value);
