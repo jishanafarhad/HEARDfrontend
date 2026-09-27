@@ -307,18 +307,18 @@
               <small class="caregiver-count" id="caregiver-count">0 of 2 caregivers added</small>
             </fieldset>
 
+            <fieldset class="profile-row visibility-row">
+              <legend>Who can see the Champion’s entries?</legend>
+              <select id="profile-visibility" name="visibility"><option value="just_me">Only the Champion</option><option value="caregiver">Champion and caregivers</option></select>
+              <small class="field-hint" id="visibility-hint"></small>
+            </fieldset>
+
             <fieldset class="profile-row history-import">
               <legend>Bring your history to HEARD</legend>
               <p class="field-hint">Import an existing symptom tracker or an exported AI conversation.</p>
               <button class="import-history-button" id="import-history-button" type="button"><span aria-hidden="true">⇧</span> Import tracker or chat history</button>
               <input id="import-history-input" type="file" accept=".json,.csv,.txt,.md,.html,text/plain,text/csv,application/json,text/markdown,text/html" hidden />
               <div class="import-history-status" id="import-history-status" role="status" aria-live="polite">Choose a JSON, CSV, TXT, Markdown, or HTML export.</div>
-            </fieldset>
-
-            <fieldset class="profile-row visibility-row">
-              <legend>Who can see the Champion’s entries?</legend>
-              <select id="profile-visibility" name="visibility"><option value="just_me">Only the Champion</option><option value="caregiver">Champion and caregivers</option></select>
-              <small class="field-hint" id="visibility-hint"></small>
             </fieldset>
 
             <div class="profile-save-result" id="profile-save-result" role="status" aria-live="polite"></div>
