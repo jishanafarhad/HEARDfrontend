@@ -643,6 +643,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .import-history-button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 12px; color:#effbff; border:1px solid #63cdea; border-radius:10px; background:rgba(14,89,132,.5); cursor:pointer; font-size:13px; font-weight:800; }
 .import-history-button span { color:#75e7ff; font-size:18px; line-height:1; }.import-history-button:hover { background:rgba(21,116,163,.65); }
 .import-history-status { padding:8px 10px; color:#9ec1dc; border-radius:8px; background:rgba(3,33,67,.45); font-size:11px; line-height:1.4; overflow-wrap:anywhere; }
+.import-history-status:empty { display:none; }
 .import-history-status.is-ready { color:#bff3dc; background:rgba(20,91,72,.48); }.import-history-status.is-error { color:#ffe3a1; background:rgba(100,66,18,.5); }
 .visibility-row { margin-top:2px; }
 @media (max-width:390px) { .menu-panel { width:100vw; padding-right:18px; padding-left:18px; }.caregiver-card { grid-template-columns:1fr; }.caregiver-card h3,.caregiver-card label:last-of-type { grid-column:1; } }

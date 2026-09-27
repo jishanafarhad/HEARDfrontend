@@ -315,10 +315,10 @@
 
             <fieldset class="profile-row history-import">
               <legend>Bring your history to HEARD</legend>
-              <p class="field-hint">Import an existing symptom tracker or an exported AI conversation.</p>
-              <button class="import-history-button" id="import-history-button" type="button"><span aria-hidden="true">⇧</span> Import tracker or chat history</button>
-              <input id="import-history-input" type="file" accept=".json,.csv,.txt,.md,.html,text/plain,text/csv,application/json,text/markdown,text/html" hidden />
-              <div class="import-history-status" id="import-history-status" role="status" aria-live="polite">Choose a JSON, CSV, TXT, Markdown, or HTML export.</div>
+              <p class="field-hint">Import an existing tracker, document, image, or exported AI conversation.</p>
+              <button class="import-history-button" id="import-history-button" type="button"><span aria-hidden="true">⇧</span> Import files or health history</button>
+              <input id="import-history-input" type="file" accept=".json,.csv,.txt,.md,.html,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,image/*,text/plain,text/csv,application/json,text/markdown,text/html,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip" hidden />
+              <div class="import-history-status" id="import-history-status" role="status" aria-live="polite"></div>
             </fieldset>
 
             <div class="profile-save-result" id="profile-save-result" role="status" aria-live="polite"></div>

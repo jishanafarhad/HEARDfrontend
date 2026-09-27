@@ -657,6 +657,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 .import-history-button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 12px; color:#effbff; border:1px solid #63cdea; border-radius:10px; background:rgba(14,89,132,.5); cursor:pointer; font-size:13px; font-weight:800; }
 .import-history-button span { color:#75e7ff; font-size:18px; line-height:1; }.import-history-button:hover { background:rgba(21,116,163,.65); }
 .import-history-status { padding:8px 10px; color:#9ec1dc; border-radius:8px; background:rgba(3,33,67,.45); font-size:11px; line-height:1.4; overflow-wrap:anywhere; }
+.import-history-status:empty { display:none; }
 .import-history-status.is-ready { color:#bff3dc; background:rgba(20,91,72,.48); }.import-history-status.is-error { color:#ffe3a1; background:rgba(100,66,18,.5); }
 .visibility-row { margin-top:2px; }
 @media (max-width:390px) { .menu-panel { width:100vw; padding-right:18px; padding-left:18px; }.caregiver-card { grid-template-columns:1fr; }.caregiver-card h3,.caregiver-card label:last-of-type { grid-column:1; } }
@@ -1461,10 +1462,10 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 
             <fieldset class="profile-row history-import">
               <legend>Bring your history to HEARD</legend>
-              <p class="field-hint">Import an existing symptom tracker or an exported AI conversation.</p>
-              <button class="import-history-button" id="import-history-button" type="button"><span aria-hidden="true">⇧</span> Import tracker or chat history</button>
-              <input id="import-history-input" type="file" accept=".json,.csv,.txt,.md,.html,text/plain,text/csv,application/json,text/markdown,text/html" hidden />
-              <div class="import-history-status" id="import-history-status" role="status" aria-live="polite">Choose a JSON, CSV, TXT, Markdown, or HTML export.</div>
+              <p class="field-hint">Import an existing tracker, document, image, or exported AI conversation.</p>
+              <button class="import-history-button" id="import-history-button" type="button"><span aria-hidden="true">⇧</span> Import files or health history</button>
+              <input id="import-history-input" type="file" accept=".json,.csv,.txt,.md,.html,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,image/*,text/plain,text/csv,application/json,text/markdown,text/html,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip" hidden />
+              <div class="import-history-status" id="import-history-status" role="status" aria-live="polite"></div>
             </fieldset>
 
             <div class="profile-save-result" id="profile-save-result" role="status" aria-live="polite"></div>
@@ -4783,7 +4784,8 @@ const caregiverIntro = document.querySelector('#caregiver-intro');
 const profilePrivacyNote = document.querySelector('#profile-privacy-note');
 const patientStorageKey = 'heard-patient-settings';
 const importedHistoryStorageKey = 'heard-imported-history';
-const maxImportedHistoryBytes = 1024 * 1024;
+const importedHistoryDatabaseName = 'heard-imports';
+const maxImportedHistoryBytes = 25 * 1024 * 1024;
 let caregivers = [];
 
 const conditionLabels = {
@@ -4881,6 +4883,37 @@ function restoreImportedHistoryStatus() {
   }
 }
 
+function storeImportedHistoryFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error('File storage is unavailable'));
+      return;
+    }
+
+    const openRequest = window.indexedDB.open(importedHistoryDatabaseName, 1);
+    openRequest.onupgradeneeded = () => {
+      const database = openRequest.result;
+      if (!database.objectStoreNames.contains('files')) database.createObjectStore('files', { keyPath: 'id' });
+    };
+    openRequest.onerror = () => reject(openRequest.error || new Error('Unable to open file storage'));
+    openRequest.onsuccess = () => {
+      const database = openRequest.result;
+      const transaction = database.transaction('files', 'readwrite');
+      transaction.objectStore('files').put({
+        id: 'latest',
+        file,
+        name: file.name,
+        type: file.type || 'application/octet-stream',
+        size: file.size,
+        imported_at: new Date().toISOString()
+      });
+      transaction.oncomplete = () => { database.close(); resolve(); };
+      transaction.onerror = () => { database.close(); reject(transaction.error || new Error('Unable to store import')); };
+      transaction.onabort = () => { database.close(); reject(transaction.error || new Error('Import cancelled')); };
+    };
+  });
+}
+
 importHistoryButton.addEventListener('click', () => importHistoryInput.click());
 importHistoryInput.addEventListener('change', async () => {
   const file = importHistoryInput.files?.[0];
@@ -4888,27 +4921,26 @@ importHistoryInput.addEventListener('change', async () => {
   importHistoryStatus.classList.remove('is-ready', 'is-error');
 
   if (file.size > maxImportedHistoryBytes) {
-    importHistoryStatus.textContent = 'This export is over 1 MB. Choose a smaller file or split the export first.';
+    importHistoryStatus.textContent = 'This file is over 25 MB. Choose a smaller file or split the export first.';
     importHistoryStatus.classList.add('is-error');
     importHistoryInput.value = '';
     return;
   }
 
   try {
-    const content = await file.text();
-    if (!content.trim()) throw new Error('empty import');
+    if (!file.size) throw new Error('empty import');
+    await storeImportedHistoryFile(file);
     const importedHistory = {
       name: file.name,
       type: file.type || 'text/plain',
       size: file.size,
-      imported_at: new Date().toISOString(),
-      content
+      imported_at: new Date().toISOString()
     };
     localStorage.setItem(importedHistoryStorageKey, JSON.stringify(importedHistory));
     importHistoryStatus.textContent = `${file.name} imported · ${formatFileSize(file.size)}`;
     importHistoryStatus.classList.add('is-ready');
   } catch {
-    importHistoryStatus.textContent = 'This file could not be imported. Try a JSON, CSV, TXT, Markdown, or HTML export.';
+    importHistoryStatus.textContent = 'This file could not be imported. Please choose it again.';
     importHistoryStatus.classList.add('is-error');
   } finally {
     importHistoryInput.value = '';

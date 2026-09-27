@@ -3128,7 +3128,8 @@ const caregiverIntro = document.querySelector('#caregiver-intro');
 const profilePrivacyNote = document.querySelector('#profile-privacy-note');
 const patientStorageKey = 'heard-patient-settings';
 const importedHistoryStorageKey = 'heard-imported-history';
-const maxImportedHistoryBytes = 1024 * 1024;
+const importedHistoryDatabaseName = 'heard-imports';
+const maxImportedHistoryBytes = 25 * 1024 * 1024;
 let caregivers = [];
 
 const conditionLabels = {
@@ -3226,6 +3227,37 @@ function restoreImportedHistoryStatus() {
   }
 }
 
+function storeImportedHistoryFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error('File storage is unavailable'));
+      return;
+    }
+
+    const openRequest = window.indexedDB.open(importedHistoryDatabaseName, 1);
+    openRequest.onupgradeneeded = () => {
+      const database = openRequest.result;
+      if (!database.objectStoreNames.contains('files')) database.createObjectStore('files', { keyPath: 'id' });
+    };
+    openRequest.onerror = () => reject(openRequest.error || new Error('Unable to open file storage'));
+    openRequest.onsuccess = () => {
+      const database = openRequest.result;
+      const transaction = database.transaction('files', 'readwrite');
+      transaction.objectStore('files').put({
+        id: 'latest',
+        file,
+        name: file.name,
+        type: file.type || 'application/octet-stream',
+        size: file.size,
+        imported_at: new Date().toISOString()
+      });
+      transaction.oncomplete = () => { database.close(); resolve(); };
+      transaction.onerror = () => { database.close(); reject(transaction.error || new Error('Unable to store import')); };
+      transaction.onabort = () => { database.close(); reject(transaction.error || new Error('Import cancelled')); };
+    };
+  });
+}
+
 importHistoryButton.addEventListener('click', () => importHistoryInput.click());
 importHistoryInput.addEventListener('change', async () => {
   const file = importHistoryInput.files?.[0];
@@ -3233,27 +3265,26 @@ importHistoryInput.addEventListener('change', async () => {
   importHistoryStatus.classList.remove('is-ready', 'is-error');
 
   if (file.size > maxImportedHistoryBytes) {
-    importHistoryStatus.textContent = 'This export is over 1 MB. Choose a smaller file or split the export first.';
+    importHistoryStatus.textContent = 'This file is over 25 MB. Choose a smaller file or split the export first.';
     importHistoryStatus.classList.add('is-error');
     importHistoryInput.value = '';
     return;
   }
 
   try {
-    const content = await file.text();
-    if (!content.trim()) throw new Error('empty import');
+    if (!file.size) throw new Error('empty import');
+    await storeImportedHistoryFile(file);
     const importedHistory = {
       name: file.name,
       type: file.type || 'text/plain',
       size: file.size,
-      imported_at: new Date().toISOString(),
-      content
+      imported_at: new Date().toISOString()
     };
     localStorage.setItem(importedHistoryStorageKey, JSON.stringify(importedHistory));
     importHistoryStatus.textContent = `${file.name} imported · ${formatFileSize(file.size)}`;
     importHistoryStatus.classList.add('is-ready');
   } catch {
-    importHistoryStatus.textContent = 'This file could not be imported. Try a JSON, CSV, TXT, Markdown, or HTML export.';
+    importHistoryStatus.textContent = 'This file could not be imported. Please choose it again.';
     importHistoryStatus.classList.add('is-error');
   } finally {
     importHistoryInput.value = '';
