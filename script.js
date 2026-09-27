@@ -3173,11 +3173,9 @@ function syncAudienceAndVisibility() {
   const age = Number(patientAgeInput.value);
   const isChild = patientAgeInput.value !== '' && Number.isFinite(age) && age < 18;
   document.documentElement.dataset.audience = isChild ? 'child' : 'adult';
-  visibilityInput.disabled = isChild;
-  visibilityInput.setAttribute('aria-readonly', String(isChild));
-  visibilityHint.textContent = isChild
-    ? 'For a child Champion, caregiver access is managed here.'
-    : '';
+  visibilityInput.disabled = false;
+  visibilityInput.removeAttribute('aria-readonly');
+  visibilityHint.textContent = '';
 }
 
 function renderCaregivers() {

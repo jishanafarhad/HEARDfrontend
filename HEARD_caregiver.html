@@ -1456,7 +1456,7 @@ button.calendar-day-number { cursor:pointer; font-weight:900; }
 
             <fieldset class="profile-row visibility-row">
               <legend>Who can see the Champion’s entries?</legend>
-              <select id="profile-visibility" name="visibility"><option value="just_me">Only the Champion</option><option value="caregiver">Champion and caregivers</option></select>
+              <select id="profile-visibility" name="visibility"><option value="just_me">Only the Champion</option><option value="caregiver">Champion and linked caregivers</option></select>
               <small class="field-hint" id="visibility-hint"></small>
             </fieldset>
 
@@ -4829,11 +4829,9 @@ function syncAudienceAndVisibility() {
   const age = Number(patientAgeInput.value);
   const isChild = patientAgeInput.value !== '' && Number.isFinite(age) && age < 18;
   document.documentElement.dataset.audience = isChild ? 'child' : 'adult';
-  visibilityInput.disabled = isChild;
-  visibilityInput.setAttribute('aria-readonly', String(isChild));
-  visibilityHint.textContent = isChild
-    ? 'For a child Champion, caregiver access is managed here.'
-    : '';
+  visibilityInput.disabled = false;
+  visibilityInput.removeAttribute('aria-readonly');
+  visibilityHint.textContent = '';
 }
 
 function renderCaregivers() {
